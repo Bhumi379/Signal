@@ -12,6 +12,9 @@ function DashboardPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [removingSymbol, setRemovingSymbol] = useState(null);
   const [expandedSymbol, setExpandedSymbol] = useState(null);
+  const [digestItems, setDigestItems] = useState([]);
+  const [showDigest, setShowDigest] = useState(false);
+  const [isDigestExpanded, setIsDigestExpanded] = useState(false);
   const [error, setError] = useState('');
 
   function handleLogout() {
@@ -33,11 +36,38 @@ function DashboardPage() {
     }
   }
 
+  async function loadDigest() {
+    try {
+      const response = await api.get('/api/digest');
+      if (!response.data.firstVisit && response.data.items?.length) {
+        setDigestItems(response.data.items);
+        setShowDigest(true);
+      }
+    } catch {
+      // Digest content is supplemental; the watchlist should still load normally.
+    }
+  }
+
+  async function markDigestSeen() {
+    try {
+      await api.post('/api/digest/mark-seen');
+    } finally {
+      setShowDigest(false);
+    }
+  }
+
   useEffect(() => {
     loadWatchlist(true);
+    loadDigest();
     const intervalId = window.setInterval(() => loadWatchlist(), 45000);
     return () => window.clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (!showDigest) return undefined;
+    const timeoutId = window.setTimeout(() => markDigestSeen(), 7000);
+    return () => window.clearTimeout(timeoutId);
+  }, [showDigest]);
 
   async function handleAdd(event) {
     event.preventDefault();
@@ -90,6 +120,35 @@ function DashboardPage() {
       </header>
 
       <main className="dashboard-main">
+        {showDigest && (
+          <section className="digest-banner" aria-labelledby="digest-title">
+            <div className="digest-banner-topline">
+              <div>
+                <p className="digest-kicker">New activity</p>
+                <h2 id="digest-title">Since you last checked, {digestItems.length} {digestItems.length === 1 ? 'thing happened' : 'things happened'}</h2>
+              </div>
+              <button type="button" className="digest-dismiss" onClick={markDigestSeen}>Dismiss</button>
+            </div>
+            <div className="digest-items">
+              {(isDigestExpanded ? digestItems : digestItems.slice(0, 3)).map((item) => (
+                <div className="digest-item" key={`${item.symbol}-${item.detectedAt}`}>
+                  <strong>{item.symbol}</strong>
+                  <span>{item.reason}</span>
+                </div>
+              ))}
+            </div>
+            {digestItems.length > 3 && (
+              <button
+                type="button"
+                className="digest-expand"
+                onClick={() => setIsDigestExpanded((expanded) => !expanded)}
+              >
+                {isDigestExpanded ? 'Show less' : `See all ${digestItems.length}`}
+              </button>
+            )}
+          </section>
+        )}
+
         <section className="dashboard-intro">
           <h1 className="dashboard-heading">Your watchlist</h1>
           <p className="dashboard-subtext">Keep an eye on the moves that matter.</p>

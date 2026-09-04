@@ -419,6 +419,81 @@ input {
   margin-bottom: 2.5rem;
 }
 
+.digest-banner {
+  margin-bottom: 3rem;
+  padding: 1.25rem 1.5rem 1.35rem;
+  background: rgba(129, 140, 248, 0.08);
+  border-left: 2px solid var(--interactive);
+}
+
+.digest-banner-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.digest-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--interactive-hover);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.digest-banner h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.digest-dismiss,
+.digest-expand {
+  padding: 0.25rem 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  font-size: 0.8125rem;
+}
+
+.digest-dismiss:hover,
+.digest-expand:hover {
+  color: var(--text);
+}
+
+.digest-dismiss:focus-visible,
+.digest-expand:focus-visible {
+  outline: 2px solid var(--interactive);
+  outline-offset: 3px;
+}
+
+.digest-items {
+  margin-top: 1rem;
+}
+
+.digest-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(129, 140, 248, 0.14);
+  font-size: 0.875rem;
+}
+
+.digest-item strong {
+  min-width: 3.5rem;
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.digest-item span {
+  color: var(--text-muted);
+}
+
+.digest-expand {
+  margin-top: 0.55rem;
+  color: var(--interactive-hover);
+}
+
 .dashboard-heading {
   margin: 0 0 0.5rem;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
@@ -689,6 +764,20 @@ input {
   .watchlist-add-button {
     padding-left: 0.875rem;
     padding-right: 0.875rem;
+  }
+
+  .digest-banner {
+    padding: 1rem;
+  }
+
+  .digest-banner-topline {
+    gap: 0.75rem;
+  }
+
+  .digest-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .watchlist-row {
