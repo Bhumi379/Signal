@@ -1,7 +1,17 @@
 require('dotenv').config();
+const dns = require('dns');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+
+const mongoDnsServers = (process.env.MONGO_DNS_SERVERS || '')
+  .split(',')
+  .map((server) => server.trim())
+  .filter(Boolean);
+
+if (mongoDnsServers.length > 0) {
+  dns.setServers(mongoDnsServers);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,17 +24,22 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/stocks', require('./routes/stocks'));
 app.use('/api/watchlist', require('./routes/watchlist'));
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 8000,
+    family: 4,
+  })
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err.message);
-    process.exit(1);
+    console.error('API is still running. Auth and watchlist routes need MongoDB.');
   });

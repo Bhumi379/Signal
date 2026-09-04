@@ -1,4 +1,5 @@
 const WatchlistItem = require('../models/WatchlistItem');
+const { getQuote } = require('../services/finnhubService');
 
 function normalizeSymbol(symbol) {
   if (typeof symbol !== 'string' || !symbol.trim()) {
@@ -76,7 +77,25 @@ async function getWatchlist(req, res) {
       .select('symbol addedAt')
       .sort({ addedAt: -1 });
 
-    res.json(items);
+    const itemsWithQuotes = await Promise.all(
+      items.map(async (item) => {
+        const watchlistItem = item.toObject();
+
+        try {
+          return {
+            ...watchlistItem,
+            quote: await getQuote(item.symbol),
+          };
+        } catch (quoteError) {
+          return {
+            ...watchlistItem,
+            quote: null,
+          };
+        }
+      }),
+    );
+
+    res.json(itemsWithQuotes);
   } catch (err) {
     res.status(500).json({ message: 'Server error fetching watchlist' });
   }
