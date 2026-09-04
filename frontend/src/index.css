@@ -339,18 +339,53 @@ input {
   flex-direction: column;
 }
 
+.dashboard-page--reveal {
+  animation: dashboard-reveal 0.5s ease both;
+}
+
+@keyframes dashboard-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .dashboard-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 2.5rem;
+  padding: 1.5rem max(2.5rem, calc((100vw - 1120px) / 2));
   border-bottom: 1px solid var(--divider);
 }
 
 .dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+.dashboard-brand-mark {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  color: var(--bg);
+  background: var(--interactive);
+  border-radius: 5px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.dashboard-account {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.dashboard-user-name {
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 
 .btn-ghost {
@@ -375,13 +410,18 @@ input {
 
 .dashboard-main {
   flex: 1;
-  padding: 3rem 2.5rem;
-  max-width: 720px;
+  width: min(100% - 5rem, 900px);
+  margin: 0 auto;
+  padding: 5rem 0 6rem;
+}
+
+.dashboard-intro {
+  margin-bottom: 2.5rem;
 }
 
 .dashboard-heading {
-  margin: 0 0 0.75rem;
-  font-size: 1.75rem;
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -391,6 +431,225 @@ input {
   font-size: 0.9375rem;
   color: var(--text-muted);
   line-height: 1.6;
+}
+
+.watchlist-add {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 3.5rem;
+}
+
+.watchlist-add input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.75rem 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  font-size: 1rem;
+  transition: border-color 0.15s ease;
+}
+
+.watchlist-add input:focus {
+  border-bottom-color: var(--interactive);
+}
+
+.watchlist-add input::placeholder {
+  color: rgba(139, 145, 158, 0.7);
+}
+
+.watchlist-add-button {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.dashboard-error {
+  margin: -2.5rem 0 2rem;
+  color: var(--error);
+  font-size: 0.875rem;
+}
+
+.watchlist-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-heading-row h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.watchlist-heading-row span {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.watchlist-list {
+  border-bottom: 1px solid var(--divider);
+}
+
+.watchlist-item {
+  position: relative;
+  border-bottom: 1px solid var(--divider);
+}
+
+.watchlist-item:last-child {
+  border-bottom: none;
+}
+
+.watchlist-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) minmax(100px, 0.8fr) minmax(90px, 0.8fr) 100px;
+  align-items: center;
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 0.75rem 5rem 0.75rem 0;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.watchlist-row:hover,
+.watchlist-row:focus-visible {
+  background: rgba(237, 237, 237, 0.025);
+}
+
+.watchlist-row:focus-visible,
+.watchlist-remove:focus-visible {
+  outline: 2px solid var(--interactive);
+  outline-offset: -2px;
+}
+
+.watchlist-symbol {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.watchlist-price,
+.watchlist-change {
+  font-variant-numeric: tabular-nums;
+}
+
+.watchlist-price {
+  color: var(--text);
+}
+
+.watchlist-change--up {
+  color: var(--up);
+}
+
+.watchlist-change--down {
+  color: var(--down);
+}
+
+.watchlist-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-self: start;
+  color: #fbbf24;
+  font-size: 0.8125rem;
+}
+
+.watchlist-flag i {
+  width: 0.4rem;
+  height: 0.4rem;
+  background: #fbbf24;
+  border-radius: 50%;
+}
+
+.watchlist-remove {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  padding: 0.35rem 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  opacity: 0.55;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.watchlist-remove:hover:not(:disabled) {
+  color: var(--down);
+  opacity: 1;
+}
+
+.watchlist-remove:disabled {
+  cursor: wait;
+}
+
+.watchlist-reason {
+  display: grid;
+  grid-template-rows: 0fr;
+  padding-right: 5rem;
+  color: var(--text-muted);
+  transition: grid-template-rows 0.25s ease;
+}
+
+.watchlist-reason--open {
+  grid-template-rows: 1fr;
+}
+
+.watchlist-reason p {
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.watchlist-reason--open p {
+  padding: 0 0 1rem;
+}
+
+.watchlist-empty {
+  padding: 3rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.watchlist-empty p {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.watchlist-empty span {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.watchlist-skeleton {
+  height: 4.5rem;
+  border-bottom: 1px solid var(--divider);
+  background: linear-gradient(90deg, transparent, rgba(237, 237, 237, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 640px) {
@@ -408,6 +667,47 @@ input {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
+
+  .dashboard-header {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .dashboard-main {
+    width: 100%;
+    padding-top: 3.5rem;
+  }
+
+  .dashboard-user-name {
+    display: none;
+  }
+
+  .watchlist-add {
+    gap: 0.5rem;
+  }
+
+  .watchlist-add-button {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .watchlist-row {
+    grid-template-columns: minmax(70px, 1fr) minmax(80px, 0.8fr) minmax(72px, 0.8fr) auto;
+    padding-right: 4rem;
+  }
+
+  .watchlist-flag {
+    font-size: 0;
+  }
+
+  .watchlist-flag i {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .watchlist-reason {
+    padding-right: 4rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -415,5 +715,14 @@ input {
   .bg-3d__grid,
   .bg-3d__orb {
     animation: none;
+  }
+
+  .dashboard-page--reveal,
+  .watchlist-skeleton {
+    animation: none;
+  }
+
+  .watchlist-reason {
+    transition: none;
   }
 }
