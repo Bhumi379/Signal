@@ -1,6 +1,7 @@
 const StockSnapshot = require('../models/StockSnapshot');
 const WatchlistItem = require('../models/WatchlistItem');
 const { getQuote } = require('./finnhubService');
+const { detectMeaningfulChange } = require('./changeDetectionService');
 
 async function takeSnapshot(symbol) {
   const normalizedSymbol = typeof symbol === 'string' ? symbol.trim().toUpperCase() : '';
@@ -32,7 +33,11 @@ async function collectSnapshotsForAllWatchedSymbols() {
   )];
 
   const results = await Promise.allSettled(
-    uniqueSymbols.map((symbol) => takeSnapshot(symbol)),
+    uniqueSymbols.map(async (symbol) => {
+      const snapshot = await takeSnapshot(symbol);
+      const change = await detectMeaningfulChange(symbol);
+      return { snapshot, change };
+    }),
   );
 
   const successful = [];

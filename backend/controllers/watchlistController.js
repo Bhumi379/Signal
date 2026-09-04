@@ -1,4 +1,5 @@
 const WatchlistItem = require('../models/WatchlistItem');
+const ChangeEvent = require('../models/ChangeEvent');
 const { getQuote } = require('../services/finnhubService');
 
 function normalizeSymbol(symbol) {
@@ -80,18 +81,30 @@ async function getWatchlist(req, res) {
     const itemsWithQuotes = await Promise.all(
       items.map(async (item) => {
         const watchlistItem = item.toObject();
+        const meaningfulSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-        try {
-          return {
-            ...watchlistItem,
-            quote: await getQuote(item.symbol),
-          };
-        } catch (quoteError) {
-          return {
-            ...watchlistItem,
-            quote: null,
-          };
-        }
+        const [quoteResult, event] = await Promise.all([
+          getQuote(item.symbol)
+            .then((quote) => ({ quote }))
+            .catch(() => ({ quote: null })),
+          ChangeEvent.findOne({
+            symbol: item.symbol,
+            changeType: 'price_spike',
+            detectedAt: { $gte: meaningfulSince },
+          })
+            .sort({ detectedAt: -1 })
+            .select('reason detectedAt')
+            .lean(),
+        ]);
+
+        return {
+          ...watchlistItem,
+          quote: quoteResult.quote,
+          meaningfulChange: {
+            isMeaningful: Boolean(event),
+            reason: event?.reason || null,
+          },
+        };
       }),
     );
 
