@@ -13,6 +13,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/api/auth', require('./routes/auth'));
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
