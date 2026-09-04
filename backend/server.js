@@ -29,6 +29,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/digest', require('./routes/digest'));
+app.use('/api/indices', require('./routes/indices'));
 app.use('/api/stocks', require('./routes/stocks'));
 app.use('/api/watchlist', require('./routes/watchlist'));
 

@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardErrorBoundary from './components/DashboardErrorBoundary';
+import AppShell from './layouts/AppShell';
+import ExplorePage from './pages/ExplorePage';
 
 function App() {
   return (
@@ -15,16 +17,17 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
+          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+            <Route
+              path="/dashboard"
+              element={
                 <DashboardErrorBoundary>
                   <DashboardPage />
                 </DashboardErrorBoundary>
-              </ProtectedRoute>
-            }
-          />
+              }
+            />
+            <Route path="/explore" element={<ExplorePage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

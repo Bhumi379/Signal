@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 function DashboardPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [watchlist, setWatchlist] = useState([]);
-  const [symbol, setSymbol] = useState('');
+  const [symbolQuery, setSymbolQuery] = useState('');
+  const [selectedSymbol, setSelectedSymbol] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [removingSymbol, setRemovingSymbol] = useState(null);
@@ -16,11 +16,6 @@ function DashboardPage() {
   const [showDigest, setShowDigest] = useState(false);
   const [isDigestExpanded, setIsDigestExpanded] = useState(false);
   const [error, setError] = useState('');
-
-  function handleLogout() {
-    logout();
-    navigate('/login', { replace: true });
-  }
 
   async function loadWatchlist(showLoading = false) {
     if (showLoading) setIsLoading(true);
@@ -69,22 +64,68 @@ function DashboardPage() {
     return () => window.clearTimeout(timeoutId);
   }, [showDigest]);
 
-  async function handleAdd(event) {
-    event.preventDefault();
-    const nextSymbol = symbol.trim().toUpperCase();
-    if (!nextSymbol || isAdding) return;
+  useEffect(() => {
+    const query = symbolQuery.trim();
+    if (!query || selectedSymbol) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const response = await api.get('/api/stocks/search', {
+          params: { query },
+          signal: controller.signal,
+        });
+        setSearchResults(response.data);
+      } catch (searchError) {
+        if (searchError.code !== 'ERR_CANCELED' && searchError.name !== 'CanceledError') {
+          setSearchResults([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [symbolQuery, selectedSymbol]);
+
+  async function handleAdd(selected) {
+    if (!selected?.symbol || isAdding) return;
 
     setIsAdding(true);
     setError('');
     try {
-      await api.post('/api/watchlist', { symbol: nextSymbol });
-      setSymbol('');
+      await api.post('/api/watchlist', { symbol: selected.symbol });
+      setSymbolQuery('');
+      setSelectedSymbol(null);
+      setSearchResults([]);
+      setIsSearchOpen(false);
       await loadWatchlist();
     } catch (addError) {
       setError(addError.response?.data?.message || 'Unable to add that symbol');
     } finally {
       setIsAdding(false);
     }
+  }
+
+  function handleSearchInput(event) {
+    setSymbolQuery(event.target.value);
+    setSelectedSymbol(null);
+    setIsSearchOpen(true);
+  }
+
+  function handleSelectResult(result) {
+    setSelectedSymbol(result);
+    setSymbolQuery(`${result.description} (${result.symbol})`);
+    setIsSearchOpen(false);
+    handleAdd(result);
   }
 
   async function handleRemove(stockSymbol) {
@@ -108,17 +149,6 @@ function DashboardPage() {
 
   return (
     <div className="dashboard-page dashboard-page--reveal">
-      <header className="dashboard-header">
-        <div className="dashboard-brand" aria-label="Signal home">
-          <span className="dashboard-brand-mark">S</span>
-          <span>Signal</span>
-        </div>
-        <div className="dashboard-account">
-          <span className="dashboard-user-name">{user?.name || 'Account'}</span>
-          <button type="button" className="btn-ghost" onClick={handleLogout}>Log out</button>
-        </div>
-      </header>
-
       <main className="dashboard-main">
         {showDigest && (
           <section className="digest-banner" aria-labelledby="digest-title">
@@ -154,19 +184,45 @@ function DashboardPage() {
           <p className="dashboard-subtext">Keep an eye on the moves that matter.</p>
         </section>
 
-        <form className="watchlist-add" onSubmit={handleAdd}>
+        <form className="watchlist-add" onSubmit={(event) => event.preventDefault()}>
           <label className="sr-only" htmlFor="stock-symbol">Add a stock symbol</label>
-          <input
-            id="stock-symbol"
-            value={symbol}
-            onChange={(event) => setSymbol(event.target.value)}
-            placeholder="Add a symbol, like AAPL"
-            autoComplete="off"
-            maxLength={12}
-          />
-          <button type="submit" className="btn-primary watchlist-add-button" disabled={isAdding || !symbol.trim()}>
-            {isAdding ? 'Adding' : 'Add stock'}
-          </button>
+          <div className="stock-search-wrap">
+            <input
+              id="stock-symbol"
+              value={symbolQuery}
+              onChange={handleSearchInput}
+              onFocus={() => symbolQuery.trim() && setIsSearchOpen(true)}
+              placeholder="Search stocks by name or symbol"
+              autoComplete="off"
+              maxLength={64}
+              role="combobox"
+              aria-expanded={isSearchOpen}
+              aria-controls="stock-search-results"
+            />
+            {isSearchOpen && symbolQuery.trim() && (
+              <div className="stock-search-results" id="stock-search-results" role="listbox">
+                {isSearching ? (
+                  <p className="stock-search-status">Searching...</p>
+                ) : searchResults.length ? (
+                  searchResults.map((result) => (
+                    <button
+                      type="button"
+                      className="stock-search-result"
+                      key={`${result.symbol}-${result.description}`}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleSelectResult(result)}
+                      role="option"
+                    >
+                      <strong>{result.description || 'Unknown company'}</strong>
+                      <span>{result.symbol}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="stock-search-status">No matches found</p>
+                )}
+              </div>
+            )}
+          </div>
         </form>
 
         {error && <p className="dashboard-error" role="alert">{error}</p>}

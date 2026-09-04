@@ -2,6 +2,7 @@ const axios = require('axios');
 const StockSnapshot = require('../models/StockSnapshot');
 
 const FINNHUB_URL = 'https://finnhub.io/api/v1/quote';
+const FINNHUB_SEARCH_URL = 'https://finnhub.io/api/v1/search';
 const REQUEST_TIMEOUT_MS = 8000;
 const MAX_RATE_LIMIT_RETRIES = 2;
 const RETRY_DELAY_MS = 300;
@@ -16,6 +17,26 @@ async function fetchQuote(normalizedSymbol) {
       return await axios.get(FINNHUB_URL, {
         params: {
           symbol: normalizedSymbol,
+          token: process.env.FINNHUB_API_KEY,
+        },
+        timeout: REQUEST_TIMEOUT_MS,
+      });
+    } catch (err) {
+      const isRateLimited = err.response?.status === 429;
+      const canRetry = isRateLimited && attempt < MAX_RATE_LIMIT_RETRIES;
+
+      if (!canRetry) throw err;
+      await wait(RETRY_DELAY_MS * (attempt + 1));
+    }
+  }
+}
+
+async function fetchSearch(query) {
+  for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt += 1) {
+    try {
+      return await axios.get(FINNHUB_SEARCH_URL, {
+        params: {
+          q: query,
           token: process.env.FINNHUB_API_KEY,
         },
         timeout: REQUEST_TIMEOUT_MS,
@@ -100,4 +121,26 @@ async function getQuote(symbol) {
   }
 }
 
-module.exports = { getQuote };
+async function searchSymbol(query) {
+  const normalizedQuery = typeof query === 'string' ? query.trim() : '';
+
+  if (!normalizedQuery) return [];
+  if (!process.env.FINNHUB_API_KEY) {
+    throw new Error('Finnhub API key is not configured');
+  }
+
+  try {
+    const response = await fetchSearch(normalizedQuery);
+    return (response.data.result || [])
+      .filter((result) => typeof result.symbol === 'string' && result.symbol.trim())
+      .map((result) => ({
+        symbol: result.symbol.trim().toUpperCase(),
+        description: typeof result.description === 'string' ? result.description.trim() : '',
+      }));
+  } catch (err) {
+    const detail = err.response?.data?.error || err.code || err.message;
+    throw new Error(`Unable to search symbols: ${detail}`);
+  }
+}
+
+module.exports = { getQuote, searchSymbol };
