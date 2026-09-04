@@ -14,6 +14,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/watchlist', require('./routes/watchlist'));
 
 mongoose
   .connect(process.env.MONGO_URI)
