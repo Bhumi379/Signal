@@ -96,7 +96,7 @@ input {
   max-height: 520px;
   top: 10%;
   right: -8%;
-  animation: plane-drift-1 28s ease-in-out infinite;
+  transform: rotateX(55deg) rotateY(-12deg) rotateZ(2deg);
 }
 
 .bg-3d__plane--2 {
@@ -107,7 +107,7 @@ input {
   bottom: 5%;
   left: -5%;
   border-color: rgba(52, 211, 153, 0.07);
-  animation: plane-drift-2 34s ease-in-out infinite;
+  transform: rotateX(40deg) rotateY(18deg) rotateZ(-4deg);
 }
 
 .bg-3d__plane--3 {
@@ -118,7 +118,7 @@ input {
   top: 45%;
   left: 55%;
   border-color: rgba(129, 140, 248, 0.05);
-  animation: plane-drift-3 22s ease-in-out infinite;
+  transform: rotateX(60deg) rotateY(-20deg) rotateZ(5deg);
 }
 
 .bg-3d__grid {
@@ -134,62 +134,6 @@ input {
   transform: rotateX(62deg) translateZ(-120px);
   transform-origin: center center;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 10%, transparent 70%);
-  animation: grid-sway 20s ease-in-out infinite;
-}
-
-.bg-3d__orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.35;
-}
-
-.bg-3d__orb--1 {
-  width: 320px;
-  height: 320px;
-  background: rgba(129, 140, 248, 0.15);
-  top: 15%;
-  right: 20%;
-  animation: orb-float-1 18s ease-in-out infinite;
-}
-
-.bg-3d__orb--2 {
-  width: 240px;
-  height: 240px;
-  background: rgba(52, 211, 153, 0.1);
-  bottom: 20%;
-  left: 15%;
-  animation: orb-float-2 24s ease-in-out infinite;
-}
-
-@keyframes plane-drift-1 {
-  0%, 100% { transform: rotateX(55deg) rotateY(-12deg) rotateZ(2deg); }
-  50% { transform: rotateX(48deg) rotateY(8deg) rotateZ(-3deg); }
-}
-
-@keyframes plane-drift-2 {
-  0%, 100% { transform: rotateX(40deg) rotateY(18deg) rotateZ(-4deg); }
-  50% { transform: rotateX(52deg) rotateY(-6deg) rotateZ(2deg); }
-}
-
-@keyframes plane-drift-3 {
-  0%, 100% { transform: rotateX(60deg) rotateY(-20deg) rotateZ(5deg); }
-  50% { transform: rotateX(45deg) rotateY(10deg) rotateZ(-2deg); }
-}
-
-@keyframes grid-sway {
-  0%, 100% { transform: rotateX(62deg) translateZ(-120px) translateX(0); }
-  50% { transform: rotateX(58deg) translateZ(-100px) translateX(20px); }
-}
-
-@keyframes orb-float-1 {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(-30px, 20px, 0); }
-}
-
-@keyframes orb-float-2 {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(25px, -15px, 0); }
 }
 
 /* ── Auth pages ── */
@@ -833,12 +777,6 @@ input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-3d__plane,
-  .bg-3d__grid,
-  .bg-3d__orb {
-    animation: none;
-  }
-
   .dashboard-page--reveal,
   .watchlist-skeleton {
     animation: none;

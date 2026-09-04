@@ -6,8 +6,6 @@ function Background3D() {
         <div className="bg-3d__plane bg-3d__plane--2" />
         <div className="bg-3d__plane bg-3d__plane--3" />
         <div className="bg-3d__grid" />
-        <div className="bg-3d__orb bg-3d__orb--1" />
-        <div className="bg-3d__orb bg-3d__orb--2" />
       </div>
     </div>
   );

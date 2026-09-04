@@ -10,10 +10,6 @@ class DashboardErrorBoundary extends Component {
     return { hasError: true };
   }
 
-  componentDidCatch(error) {
-    console.error('Dashboard rendering error:', error);
-  }
-
   handleReload = () => {
     window.location.reload();
   };

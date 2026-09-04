@@ -31,14 +31,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/digest', require('./routes/digest'));
 app.use('/api/stocks', require('./routes/stocks'));
 app.use('/api/watchlist', require('./routes/watchlist'));
-app.post('/api/admin/snapshot-now', async (req, res) => {
-  try {
-    const result = await collectSnapshotsForAllWatchedSymbols();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: 'Snapshot collection failed', error: err.message });
-  }
-});
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
@@ -49,18 +41,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT);
 
 mongoose
   .connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 8000,
     family: 4,
   })
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
+  .then(() => undefined)
   .catch((err) => {
     console.error('MongoDB connection error:', err.message);
     console.error('API is still running. Auth and watchlist routes need MongoDB.');
@@ -68,8 +56,7 @@ mongoose
 
 cron.schedule('*/5 * * * *', async () => {
   try {
-    const result = await collectSnapshotsForAllWatchedSymbols();
-    console.log('Scheduled snapshot collection complete:', result);
+    await collectSnapshotsForAllWatchedSymbols();
   } catch (err) {
     console.error('Scheduled snapshot collection failed:', err.message);
   }
