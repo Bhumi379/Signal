@@ -203,11 +203,14 @@ function DashboardPage() {
                     >
                       <span className="watchlist-symbol">{stock.symbol}</span>
                       <span className="watchlist-price">{stock.quote?.currentPrice != null ? `$${stock.quote.currentPrice.toFixed(2)}` : '—'}</span>
-                      <span className={`watchlist-change ${percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>
+                      <span className={`watchlist-change ${percentChange == null ? '' : percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>
                         {percentChange != null ? `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%` : '—'}
                       </span>
                       {isFlagged ? <span className="watchlist-flag"><i />Unusual</span> : <span />}
                     </button>
+                    {stock.quote?.stale && (
+                      <p className="watchlist-stale-note">Data may be delayed</p>
+                    )}
                     <button
                       type="button"
                       className="watchlist-remove"

@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
+import DashboardErrorBoundary from './components/DashboardErrorBoundary';
 
 function App() {
   return (
@@ -18,7 +19,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <DashboardErrorBoundary>
+                  <DashboardPage />
+                </DashboardErrorBoundary>
               </ProtectedRoute>
             }
           />

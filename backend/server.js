@@ -40,6 +40,15 @@ app.post('/api/admin/snapshot-now', async (req, res) => {
   }
 });
 
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+
+  console.error('Unhandled request error:', err.message);
+  res.status(err.status || 500).json({
+    message: err.status ? err.message : 'Something went wrong',
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
