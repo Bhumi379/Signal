@@ -3,6 +3,10 @@ const dns = require('dns');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
+const {
+  collectSnapshotsForAllWatchedSymbols,
+} = require('./services/snapshotService');
 
 const mongoDnsServers = (process.env.MONGO_DNS_SERVERS || '')
   .split(',')
@@ -26,6 +30,14 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/stocks', require('./routes/stocks'));
 app.use('/api/watchlist', require('./routes/watchlist'));
+app.post('/api/admin/snapshot-now', async (req, res) => {
+  try {
+    const result = await collectSnapshotsForAllWatchedSymbols();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: 'Snapshot collection failed', error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -43,3 +55,12 @@ mongoose
     console.error('MongoDB connection error:', err.message);
     console.error('API is still running. Auth and watchlist routes need MongoDB.');
   });
+
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const result = await collectSnapshotsForAllWatchedSymbols();
+    console.log('Scheduled snapshot collection complete:', result);
+  } catch (err) {
+    console.error('Scheduled snapshot collection failed:', err.message);
+  }
+});
