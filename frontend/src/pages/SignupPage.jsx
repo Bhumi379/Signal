@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Background3D from '../components/Background3D';
 import { hasSeenIntro } from '../components/LandingAnimation';
+import SignalMark from '../components/SignalMark';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ function SignupPage() {
   return (
     <div className="auth-page">
       <Background3D />
-      <div className={`auth-logo ${introSeen ? 'auth-logo--settled' : ''}`}>Signal</div>
+      <div className={`auth-logo ${introSeen ? 'auth-logo--settled' : ''}`}><SignalMark /><span>Signal</span></div>
 
       <main className="auth-main">
         <div className="auth-form-wrap">

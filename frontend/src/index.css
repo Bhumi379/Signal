@@ -425,27 +425,37 @@ body {
   border-bottom: 1px solid var(--divider);
 }
 
+.index-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: index-marquee 42s linear infinite;
+}
+
+.index-ticker:hover .index-ticker-track {
+  animation-play-state: paused;
+}
+
+.index-ticker--paused .index-ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes index-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 .index-ticker-inner {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  width: min(calc(100% - (2 * var(--content-gutter))), var(--content-max));
-  margin: 0 auto;
+  display: flex;
+  flex: 0 0 auto;
 }
 
 .index-item {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0 0.75rem;
+  min-width: 11.5rem;
   padding: 0.85rem 1.25rem;
   border-right: 1px solid var(--divider);
-}
-
-.index-item:first-child {
-  padding-left: 0;
-}
-
-.index-item:last-child {
-  border-right: none;
 }
 
 .index-name {
@@ -622,14 +632,12 @@ body {
 }
 
 .explore-table-wrap {
-  overflow-x: auto;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--divider);
 }
 
 .explore-table {
   width: 100%;
-  min-width: 680px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -904,6 +912,36 @@ input {
   letter-spacing: -0.02em;
   color: var(--text);
   user-select: none;
+}
+
+.signal-mark {
+  display: block;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.app-brand .signal-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.auth-logo,
+.landing-logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.landing-logo-lockup .signal-mark,
+.auth-logo .signal-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.landing-logo-lockup {
+  color: inherit;
 }
 
 .landing-logo {
@@ -1562,14 +1600,12 @@ input {
 }
 
 .watchlist-table-wrap {
-  overflow-x: auto;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--divider);
 }
 
 .watchlist-table {
   width: 100%;
-  min-width: 760px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -1988,24 +2024,9 @@ input {
     gap: 1rem;
   }
 
-  .index-ticker-inner {
-    display: flex;
-    width: max-content;
-    min-width: 100%;
-  }
-
-  .index-item,
-  .index-item:first-child {
+  .index-item {
     min-width: 9.5rem;
     padding: 0.75rem 1rem;
-  }
-
-  .index-item:first-child {
-    padding-left: 1.5rem;
-  }
-
-  .index-item:last-child {
-    padding-right: 1.5rem;
   }
 
   .app-shell-content {
@@ -2109,6 +2130,10 @@ input {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .index-ticker-track {
+    animation: none;
+  }
+
   .dashboard-page--reveal,
   .watchlist-stat-tile,
   .watchlist-table-row,

@@ -7,6 +7,12 @@ const indices = [
   { name: 'SENSEX', baseValue: 79000 },
   { name: 'BANK NIFTY', baseValue: 51000 },
   { name: 'NIFTY IT', baseValue: 35000 },
+  { name: 'NIFTY PHARMA', baseValue: 21000 },
+  { name: 'NIFTY AUTO', baseValue: 23500 },
+  { name: 'NIFTY METAL', baseValue: 8900 },
+  { name: 'NIFTY FMCG', baseValue: 57000 },
+  { name: 'MIDCAP NIFTY', baseValue: 56000 },
+  { name: 'FINNIFTY', baseValue: 24500 },
 ].map((index) => ({
   ...index,
   value: index.baseValue,

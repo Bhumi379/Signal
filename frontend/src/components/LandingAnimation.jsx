@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import SignalMark from './SignalMark';
 
 const INTRO_SEEN_KEY = 'signal_intro_seen';
 
@@ -48,7 +49,7 @@ function LandingAnimation({ play, onComplete }) {
         }
       }}
     >
-      Signal
+      <span className="landing-logo-lockup"><SignalMark /><span>Signal</span></span>
     </motion.div>
   );
 }

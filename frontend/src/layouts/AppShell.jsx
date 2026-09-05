@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AmbientGlow from '../components/AmbientGlow';
+import SignalMark from '../components/SignalMark';
 import api from '../services/api';
 
 function AppShell() {
@@ -12,6 +13,13 @@ function AppShell() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(() => document.visibilityState === 'visible');
+
+  useEffect(() => {
+    const handleVisibilityChange = () => setIsPageVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -112,7 +120,7 @@ function AppShell() {
       <AmbientGlow />
       <header className="app-nav">
         <NavLink to="/dashboard" className="app-brand" aria-label="Signal watchlist">
-          <span className="dashboard-brand-mark">S</span>
+          <SignalMark />
           <span>Signal</span>
         </NavLink>
         <nav className="app-nav-links" aria-label="Primary navigation">
@@ -192,15 +200,19 @@ function AppShell() {
           </div>
         </div>
       </header>
-      <div className="index-ticker" aria-label="Market indices">
-        <div className="index-ticker-inner">
-          {indices.map((index) => (
-            <div className="index-item" key={index.name}>
-              <span className="index-name">{index.name}</span>
-              <strong>{index.value.toLocaleString('en-IN')}</strong>
-              <span className={index.changePercent >= 0 ? 'index-change index-change--up' : 'index-change index-change--down'}>
-                {index.changePercent >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%
-              </span>
+      <div className={`index-ticker${isPageVisible ? '' : ' index-ticker--paused'}`} aria-label="Market indices">
+        <div className="index-ticker-track">
+          {[indices, indices].map((tickerGroup, groupIndex) => (
+            <div className="index-ticker-inner" aria-hidden={groupIndex === 1} key={groupIndex}>
+              {tickerGroup.map((index) => (
+                <div className="index-item" key={`${groupIndex}-${index.name}`}>
+                  <span className="index-name">{index.name}</span>
+                  <strong>{index.value.toLocaleString('en-IN')}</strong>
+                  <span className={index.changePercent >= 0 ? 'index-change index-change--up' : 'index-change index-change--down'}>
+                    {index.changePercent >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%
+                  </span>
+                </div>
+              ))}
             </div>
           ))}
         </div>
