@@ -14,6 +14,13 @@ function LandingPage() {
     }
   }, [playIntro]);
 
+  useEffect(() => {
+  if (playIntro) {
+    const timer = setTimeout(() => setPlayIntro(false), 1500);
+    return () => clearTimeout(timer);
+  }
+}, [playIntro]);
+
   function handleIntroComplete() {
     setPlayIntro(false);
     setContentVisible(true);
