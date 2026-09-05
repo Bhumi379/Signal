@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import InfoTip from '../components/InfoTip';
 import api from '../services/api';
 
 function ExplorePage() {
   const [stocks, setStocks] = useState([]);
   const [watchlistSymbols, setWatchlistSymbols] = useState(new Set());
   const [filter, setFilter] = useState('');
+  const [sectorFilter, setSectorFilter] = useState('');
+  const [capFilter, setCapFilter] = useState('');
+  const [quickFilters, setQuickFilters] = useState({ gainers: false, losers: false, unusual: false });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'desc' });
   const [isLoading, setIsLoading] = useState(true);
   const [addingSymbol, setAddingSymbol] = useState(null);
@@ -42,7 +46,15 @@ function ExplorePage() {
     const query = filter.trim().toLowerCase();
     const matches = stocks.filter((stock) => !query
       || stock.symbol.toLowerCase().includes(query)
-      || stock.companyName.toLowerCase().includes(query));
+      || stock.companyName.toLowerCase().includes(query)).filter((stock) => {
+      const percentChange = stock.quote?.percentChange;
+      if (sectorFilter && stock.sector !== sectorFilter) return false;
+      if (capFilter && stock.capTier !== capFilter) return false;
+      if (quickFilters.gainers && !(percentChange > 0)) return false;
+      if (quickFilters.losers && !(percentChange < 0)) return false;
+      if (quickFilters.unusual && !stock.meaningfulChange?.isMeaningful) return false;
+      return true;
+    });
 
     if (!sortConfig.key) return matches;
 
@@ -60,7 +72,21 @@ function ExplorePage() {
       const comparison = firstValue - secondValue;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [filter, sortConfig, stocks]);
+  }, [capFilter, filter, quickFilters, sectorFilter, sortConfig, stocks]);
+
+  const hasActiveFilters = Boolean(filter.trim() || sectorFilter || capFilter
+    || Object.values(quickFilters).some(Boolean));
+
+  function toggleQuickFilter(key) {
+    setQuickFilters((current) => ({ ...current, [key]: !current[key] }));
+  }
+
+  function clearFilters() {
+    setFilter('');
+    setSectorFilter('');
+    setCapFilter('');
+    setQuickFilters({ gainers: false, losers: false, unusual: false });
+  }
 
   function handleSort(key) {
     setSortConfig((current) => ({
@@ -93,13 +119,39 @@ function ExplorePage() {
         <p className="dashboard-subtext">Browse popular companies and add a stock to your watchlist.</p>
       </section>
 
+      <div className="explore-summary-tile">
+        <span>{stocks.filter((stock) => stock.quote?.percentChange > 0).length} stocks trending up today</span>
+        <strong>{stocks.filter((stock) => stock.meaningfulChange?.isMeaningful).length} flagged as unusual</strong>
+      </div>
+
       <section className="explore-table-section" aria-labelledby="explore-table-title">
         <div className="explore-table-toolbar">
           <label className="explore-filter">
             <span className="sr-only">Filter explore stocks</span>
             <input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Filter by company or symbol" />
           </label>
-          {!isLoading && <span className="explore-count">{filteredStocks.length} stocks</span>}
+          {!isLoading && <span className="explore-count">{filteredStocks.length} of {stocks.length} stocks</span>}
+        </div>
+
+        <div className="explore-filter-bar" aria-label="Explore filters">
+          <label>
+            <span className="sr-only">Sector</span>
+            <select value={sectorFilter} onChange={(event) => setSectorFilter(event.target.value)}>
+              <option value="">All Sectors</option>
+              {['IT', 'Banking & Finance', 'Energy', 'FMCG', 'Pharma', 'Auto', 'Metals', 'Telecom'].map((sector) => <option key={sector} value={sector}>{sector}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Market Cap</span>
+            <select value={capFilter} onChange={(event) => setCapFilter(event.target.value)}>
+              <option value="">All</option>
+              {['Large Cap', 'Mid Cap', 'Small Cap'].map((cap) => <option key={cap} value={cap}>{cap}</option>)}
+            </select>
+          </label>
+          <button type="button" className={`explore-filter-chip${quickFilters.gainers ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('gainers')}>Gainers</button>
+          <button type="button" className={`explore-filter-chip${quickFilters.losers ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('losers')}>Losers</button>
+          <button type="button" className={`explore-filter-chip${quickFilters.unusual ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('unusual')}>Unusual only</button>
+          {hasActiveFilters && <button type="button" className="explore-clear-filters" onClick={clearFilters}>Clear filters</button>}
         </div>
 
         {error && <p className="dashboard-error" role="alert">{error}</p>}
@@ -109,7 +161,7 @@ function ExplorePage() {
           </div>
         ) : filteredStocks.length === 0 ? (
           <div className="explore-empty">
-            {filter.trim() ? 'No stocks match your search' : 'Explore data is unavailable right now'}
+            {filter.trim() ? 'No stocks match your search' : hasActiveFilters ? 'No stocks match your filters' : 'Explore data is unavailable right now'}
           </div>
         ) : (
           <div className="explore-table-wrap">
@@ -118,8 +170,8 @@ function ExplorePage() {
                 <tr>
                   <th>Company</th>
                   <th><button type="button" onClick={() => handleSort('price')}>Price</button></th>
-                  <th><button type="button" onClick={() => handleSort('change')}>1D Change</button></th>
-                  <th><button type="button" onClick={() => handleSort('volume')}>Volume</button></th>
+                  <th><button type="button" onClick={() => handleSort('change')}>1D Change</button> <InfoTip label="About one day change">How much the price has moved since yesterday's market close.</InfoTip></th>
+                  <th><button type="button" onClick={() => handleSort('volume')}>Volume</button> <InfoTip label="About volume">How many shares of this stock have been traded today. Higher volume usually means more people are paying attention to it right now.</InfoTip></th>
                   <th aria-label="Watchlist action" />
                 </tr>
               </thead>
@@ -128,13 +180,13 @@ function ExplorePage() {
                   const percentChange = stock.quote?.percentChange;
                   const isAdded = watchlistSymbols.has(stock.symbol);
                   return (
-                    <tr key={stock.symbol}>
+                    <tr className={stock.meaningfulChange?.isMeaningful ? 'explore-table-row explore-table-row--flagged' : 'explore-table-row'} key={stock.symbol}>
                       <td>
                         <div className="explore-company">
                           <span className="explore-company-mark">{stock.companyName.charAt(0)}</span>
                           <span>
                             <strong>{stock.companyName}</strong>
-                            <small>{stock.symbol}{stock.meaningfulChange?.isMeaningful && <em><i />Unusual</em>}</small>
+                            <small>{stock.symbol}{stock.meaningfulChange?.isMeaningful && <em><i />Unusual <InfoTip label="About unusual move">This stock moved a lot more than it normally does, based on its own recent history — not just a big number, but unusual for this stock specifically.</InfoTip></em>}</small>
                           </span>
                         </div>
                       </td>

@@ -1,5 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Line, LineChart } from 'recharts';
+import InfoTip from '../components/InfoTip';
+import StatTile from '../components/StatTile';
 import api from '../services/api';
 
 function DashboardPage() {
@@ -194,10 +196,10 @@ function DashboardPage() {
           <thead>
             <tr>
               <th>Company</th>
-              <th>Trend</th>
+              <th>Trend <InfoTip label="About trend">A quick snapshot of how the price has moved recently.</InfoTip></th>
               <th><button type="button" onClick={() => handleSort('price')}>Price</button></th>
-              <th><button type="button" onClick={() => handleSort('change')}>1D Change</button></th>
-              <th><button type="button" onClick={() => handleSort('volume')}>Volume</button></th>
+              <th><button type="button" onClick={() => handleSort('change')}>1D Change</button> <InfoTip label="About one day change">How much the price has moved since yesterday's market close.</InfoTip></th>
+              <th><button type="button" onClick={() => handleSort('volume')}>Volume</button> <InfoTip label="About volume">How many shares of this stock have been traded today. Higher volume usually means more people are paying attention to it right now.</InfoTip></th>
               {isEditMode && <th aria-label="Edit actions" />}
             </tr>
           </thead>
@@ -224,7 +226,7 @@ function DashboardPage() {
                       <span className="company-copy">
                         <strong>{stock.companyName || stock.symbol}</strong>
                         <span>{stock.symbol}</span>
-                        {isFlagged && <small className="watchlist-flag"><i />Unusual move</small>}
+                        {isFlagged && <small className="watchlist-flag"><i />Unusual move <InfoTip label="About unusual move">This stock moved a lot more than it normally does, based on its own recent history — not just a big number, but unusual for this stock specifically.</InfoTip></small>}
                         {stock.quote?.stale && <small className="watchlist-stale-note">Data may be delayed</small>}
                       </span>
                     </td>
@@ -262,6 +264,15 @@ function DashboardPage() {
 
   const attentionStocks = filteredWatchlist.filter((stock) => stock.meaningfulChange?.isMeaningful);
   const watchingStocks = filteredWatchlist.filter((stock) => !stock.meaningfulChange?.isMeaningful);
+  const flaggedStocks = watchlist.filter((stock) => stock.meaningfulChange?.isMeaningful);
+  const stocksWithChange = watchlist.filter((stock) => typeof stock.quote?.percentChange === 'number');
+  const upStocks = stocksWithChange.filter((stock) => stock.quote.percentChange > 0).length;
+  const downStocks = stocksWithChange.filter((stock) => stock.quote.percentChange < 0).length;
+  const bestPerformer = stocksWithChange.reduce((best, stock) => (
+    !best || stock.quote.percentChange > best.quote.percentChange ? stock : best
+  ), null);
+  const moverTotal = upStocks + downStocks;
+  const upWidth = moverTotal ? `${(upStocks / moverTotal) * 100}%` : '0%';
 
   return (
     <div className="dashboard-page dashboard-page--reveal">
@@ -294,6 +305,33 @@ function DashboardPage() {
             )}
           </section>
         )}
+
+        <section className="watchlist-stat-tiles" aria-label="Watchlist summary">
+          <StatTile>
+            <span className="watchlist-stat-icon" aria-hidden="true">◌</span>
+            <span className="watchlist-stat-label">Watching</span>
+            <strong>{watchlist.length}</strong>
+          </StatTile>
+          <StatTile className={flaggedStocks.length ? 'watchlist-stat-tile--attention' : ''}>
+            <span className="watchlist-stat-icon" aria-hidden="true">!</span>
+            <span className="watchlist-stat-label">Needs attention</span>
+            <strong>{flaggedStocks.length}</strong>
+          </StatTile>
+          <StatTile className="watchlist-stat-tile--movers">
+            <span className="watchlist-stat-label">Today's movers</span>
+            <strong>{upStocks} up <em>/</em> {downStocks} down</strong>
+            <span className="movers-bar" aria-label={`${upStocks} up and ${downStocks} down`}>
+              <i style={{ width: upWidth }} />
+              <i style={{ width: moverTotal ? `${100 - (upStocks / moverTotal) * 100}%` : '0%' }} />
+            </span>
+          </StatTile>
+          <StatTile>
+            <span className="watchlist-stat-label">Best performer</span>
+            {bestPerformer ? (
+              <strong className="best-performer">{bestPerformer.symbol.replace(/\.NS$/i, '')} <em>+{bestPerformer.quote.percentChange.toFixed(2)}%</em></strong>
+            ) : <strong>—</strong>}
+          </StatTile>
+        </section>
 
         <section className="dashboard-intro">
           <h1 className="dashboard-heading">Your watchlist</h1>

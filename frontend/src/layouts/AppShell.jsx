@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AmbientGlow from '../components/AmbientGlow';
 import api from '../services/api';
 
 function AppShell() {
@@ -108,6 +109,7 @@ function AppShell() {
 
   return (
     <div className="app-shell">
+      <AmbientGlow />
       <header className="app-nav">
         <NavLink to="/dashboard" className="app-brand" aria-label="Signal watchlist">
           <span className="dashboard-brand-mark">S</span>

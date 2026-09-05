@@ -24,6 +24,7 @@ async function calculateStats(symbol) {
     .lean();
 
   const chronologicalSnapshots = snapshots.reverse();
+  const historicalSnapshots = chronologicalSnapshots.slice(0, -1);
   const changes = [];
 
   for (let index = 1; index < chronologicalSnapshots.length; index += 1) {
@@ -37,7 +38,7 @@ async function calculateStats(symbol) {
     changes.push(((currentPrice - previousPrice) / previousPrice) * 100);
   }
 
-  if (changes.length < MINIMUM_SAMPLE_SIZE) {
+  if (historicalSnapshots.length < MINIMUM_SAMPLE_SIZE || changes.length < MINIMUM_SAMPLE_SIZE) {
     return null;
   }
 
@@ -60,8 +61,11 @@ async function detectMeaningfulChange(symbol) {
     throw new Error('A stock symbol is required');
   }
 
-  const latestQuote = await getYahooQuote(normalizedSymbol);
   const stats = await calculateStats(normalizedSymbol);
+  const latestChange = stats === null ? null : (await getYahooQuote(normalizedSymbol)).percentChange;
+  const zScore = stats && typeof latestChange === 'number' && stats.stdDev >= 0.01
+    ? (latestChange - stats.avgChange) / stats.stdDev
+    : null;
 
   if (stats === null) {
     return {
@@ -70,14 +74,14 @@ async function detectMeaningfulChange(symbol) {
     };
   }
 
-  const latestChange = latestQuote.percentChange;
   if (typeof latestChange !== 'number') {
-    throw new Error(`Finnhub returned no percent change for ${normalizedSymbol}`);
+    return { isMeaningful: false, reason: 'quote change unavailable' };
   }
 
-  const zScore = stats.stdDev === 0
-    ? (latestChange === stats.avgChange ? 0 : Infinity * Math.sign(latestChange - stats.avgChange))
-    : (latestChange - stats.avgChange) / stats.stdDev;
+  if (stats.stdDev < 0.01) {
+    return { isMeaningful: false, zScore: null, reason: 'not enough variation yet' };
+  }
+
   const isMeaningful = Math.abs(zScore) > 2;
 
   if (!isMeaningful) {
