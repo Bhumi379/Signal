@@ -820,6 +820,248 @@ input {
   font-size: 0.8125rem;
 }
 
+.watchlist-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.watchlist-filter-wrap {
+  flex: 1;
+}
+
+.watchlist-filter-wrap input {
+  width: min(100%, 22rem);
+  padding: 0.65rem 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  font-size: 0.875rem;
+}
+
+.watchlist-filter-wrap input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.watchlist-filter-wrap input::placeholder {
+  color: var(--text-muted);
+}
+
+.edit-toggle {
+  padding: 0.55rem 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  font-size: 0.8125rem;
+}
+
+.edit-toggle:hover,
+.edit-toggle--active {
+  color: var(--accent);
+}
+
+.watchlist-group {
+  margin-top: 2rem;
+}
+
+.watchlist-group h3 {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.watchlist-table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
+}
+
+.watchlist-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.watchlist-table th {
+  padding: 0.75rem 0.75rem;
+  color: var(--text-muted);
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.watchlist-table th:first-child {
+  width: 31%;
+  padding-left: 0;
+}
+
+.watchlist-table th:nth-child(2) {
+  width: 16%;
+}
+
+.watchlist-table th:nth-child(3),
+.watchlist-table th:nth-child(4),
+.watchlist-table th:nth-child(5) {
+  width: 17%;
+  text-align: right;
+}
+
+.watchlist-table th:last-child {
+  width: 3rem;
+  padding-right: 0;
+}
+
+.watchlist-table th button {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: none;
+  font: inherit;
+}
+
+.watchlist-table th button:hover,
+.watchlist-table th button:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.watchlist-table-row {
+  border-top: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.watchlist-table-row:hover {
+  background: rgba(237, 237, 237, 0.025);
+}
+
+.watchlist-table td {
+  padding: 0.85rem 0.75rem;
+  vertical-align: middle;
+}
+
+.watchlist-table td:first-child {
+  padding-left: 0;
+}
+
+.watchlist-table td:last-child {
+  padding-right: 0;
+}
+
+.company-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.company-logo {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--text);
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.company-logo--0 { background: rgba(129, 140, 248, 0.28); }
+.company-logo--1 { background: rgba(52, 211, 153, 0.25); }
+.company-logo--2 { background: rgba(248, 113, 113, 0.25); }
+.company-logo--3 { background: rgba(251, 191, 36, 0.25); }
+
+.company-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.company-copy strong {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-copy > span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.company-copy .watchlist-flag,
+.company-copy .watchlist-stale-note {
+  margin-top: 0.2rem;
+  margin-right: 0;
+  font-size: 0.6875rem;
+}
+
+.company-copy .watchlist-flag i {
+  width: 0.35rem;
+  height: 0.35rem;
+}
+
+.trend-cell {
+  padding-left: 0.75rem;
+}
+
+.number-cell {
+  text-align: right;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.change-cell {
+  font-size: 0.75rem;
+}
+
+.edit-cell {
+  text-align: right;
+}
+
+.remove-stock-button {
+  display: inline-grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.remove-stock-button:hover {
+  color: var(--down);
+  border-color: var(--down);
+}
+
+.watchlist-detail-row td {
+  padding: 0 0.75rem 1rem;
+  color: var(--text-muted);
+  background: rgba(129, 140, 248, 0.04);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.watchlist-table-empty {
+  padding: 1.25rem 0;
+  color: var(--text-muted);
+  border-top: 1px solid var(--divider);
+  font-size: 0.8125rem;
+}
+
 .watchlist-list {
   border-bottom: 1px solid var(--divider);
 }

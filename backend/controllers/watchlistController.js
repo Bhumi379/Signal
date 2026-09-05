@@ -1,6 +1,20 @@
 const WatchlistItem = require('../models/WatchlistItem');
 const ChangeEvent = require('../models/ChangeEvent');
+const StockSnapshot = require('../models/StockSnapshot');
 const { getQuote } = require('../services/finnhubService');
+
+const companyNames = {
+  'RELIANCE.NS': 'Reliance Industries',
+  'TCS.NS': 'Tata Consultancy Services',
+  'HDFCBANK.NS': 'HDFC Bank',
+  'INFY.NS': 'Infosys',
+  'ITC.NS': 'ITC',
+  'ICICIBANK.NS': 'ICICI Bank',
+  'SBIN.NS': 'State Bank of India',
+  'TATASTEEL.NS': 'Tata Steel',
+  'BHARTIARTL.NS': 'Bharti Airtel',
+  'HINDUNILVR.NS': 'Hindustan Unilever',
+};
 
 function normalizeSymbol(symbol) {
   if (typeof symbol !== 'string' || !symbol.trim()) {
@@ -83,7 +97,7 @@ async function getWatchlist(req, res) {
         const watchlistItem = item.toObject();
         const meaningfulSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-        const [quoteResult, event] = await Promise.all([
+        const [quoteResult, event, snapshots] = await Promise.all([
           getQuote(item.symbol)
             .then((quote) => ({ quote }))
             .catch(() => ({ quote: null })),
@@ -95,11 +109,23 @@ async function getWatchlist(req, res) {
             .sort({ detectedAt: -1 })
             .select('reason detectedAt')
             .lean(),
+          StockSnapshot.find({ symbol: item.symbol })
+            .sort({ timestamp: -1 })
+            .limit(20)
+            .select('price timestamp')
+            .lean(),
         ]);
+
+        const companyName = companyNames[item.symbol] || item.symbol.replace(/\.NS$/i, '');
 
         return {
           ...watchlistItem,
+          companyName,
           quote: quoteResult.quote,
+          trend: snapshots.reverse().map((snapshot) => ({
+            value: snapshot.price,
+            timestamp: snapshot.timestamp,
+          })),
           meaningfulChange: {
             isMeaningful: Boolean(event),
             reason: event?.reason || null,

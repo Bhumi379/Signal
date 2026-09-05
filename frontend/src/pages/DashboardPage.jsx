@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import { Line, LineChart } from 'recharts';
 import api from '../services/api';
 
 function DashboardPage() {
@@ -15,6 +16,9 @@ function DashboardPage() {
   const [digestItems, setDigestItems] = useState([]);
   const [showDigest, setShowDigest] = useState(false);
   const [isDigestExpanded, setIsDigestExpanded] = useState(false);
+  const [watchlistFilter, setWatchlistFilter] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'desc' });
   const [error, setError] = useState('');
 
   async function loadWatchlist(showLoading = false) {
@@ -142,10 +146,122 @@ function DashboardPage() {
     }
   }
 
-  const sortedWatchlist = [...watchlist].sort(
-    (first, second) => Number(Boolean(second.meaningfulChange?.isMeaningful))
-      - Number(Boolean(first.meaningfulChange?.isMeaningful)),
-  );
+  const filteredWatchlist = watchlist.filter((stock) => {
+    const query = watchlistFilter.trim().toLowerCase();
+    if (!query) return true;
+    return stock.symbol.toLowerCase().includes(query)
+      || stock.companyName?.toLowerCase().includes(query);
+  });
+
+  function getSortValue(stock, key) {
+    if (key === 'price') return stock.quote?.currentPrice ?? -Infinity;
+    if (key === 'change') return stock.quote?.percentChange ?? -Infinity;
+    if (key === 'volume') return stock.quote?.volume ?? -Infinity;
+    return stock.companyName || stock.symbol;
+  }
+
+  function sortStocks(stocks) {
+    return [...stocks].sort((first, second) => {
+      if (!sortConfig.key) return 0;
+      const firstValue = getSortValue(first, sortConfig.key);
+      const secondValue = getSortValue(second, sortConfig.key);
+      const comparison = typeof firstValue === 'string'
+        ? firstValue.localeCompare(secondValue)
+        : firstValue - secondValue;
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  function handleSort(key) {
+    setSortConfig((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
+    }));
+  }
+
+  function formatVolume(volume) {
+    return typeof volume === 'number' ? volume.toLocaleString('en-IN') : '—';
+  }
+
+  function renderStockTable(stocks, emptyMessage) {
+    if (!stocks.length) {
+      return <div className="watchlist-table-empty">{emptyMessage}</div>;
+    }
+
+    return (
+      <div className="watchlist-table-wrap">
+        <table className="watchlist-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Trend</th>
+              <th><button type="button" onClick={() => handleSort('price')}>Price</button></th>
+              <th><button type="button" onClick={() => handleSort('change')}>1D Change</button></th>
+              <th><button type="button" onClick={() => handleSort('volume')}>Volume</button></th>
+              {isEditMode && <th aria-label="Edit actions" />}
+            </tr>
+          </thead>
+          <tbody>
+            {sortStocks(stocks).map((stock) => {
+              const isFlagged = stock.meaningfulChange?.isMeaningful;
+              const isExpanded = expandedSymbol === stock.symbol;
+              const percentChange = stock.quote?.percentChange;
+              const priceChange = stock.quote?.change;
+              const trend = stock.trend?.length >= 2
+                ? stock.trend
+                : [{ value: stock.quote?.currentPrice || 0 }, { value: stock.quote?.currentPrice || 0 }];
+              const trendUp = trend[trend.length - 1].value >= trend[0].value;
+              const logoTone = stock.symbol.charCodeAt(0) % 4;
+
+                return (
+                <Fragment key={stock._id || stock.symbol}>
+                  <tr
+                    className={`watchlist-table-row${isFlagged ? ' watchlist-table-row--flagged' : ''}`}
+                    onClick={() => isFlagged && setExpandedSymbol(isExpanded ? null : stock.symbol)}
+                  >
+                    <td className="company-cell">
+                      <span className={`company-logo company-logo--${logoTone}`}>{(stock.companyName || stock.symbol).charAt(0)}</span>
+                      <span className="company-copy">
+                        <strong>{stock.companyName || stock.symbol}</strong>
+                        <span>{stock.symbol}</span>
+                        {isFlagged && <small className="watchlist-flag"><i />Unusual move</small>}
+                        {stock.quote?.stale && <small className="watchlist-stale-note">Data may be delayed</small>}
+                      </span>
+                    </td>
+                    <td className="trend-cell">
+                      <LineChart width={92} height={32} data={trend}>
+                        <Line type="monotone" dataKey="value" stroke={stock.trend?.length >= 2 ? (trendUp ? 'var(--up)' : 'var(--down)') : 'var(--text-muted)'} strokeWidth={2} dot={false} isAnimationActive={false} />
+                      </LineChart>
+                    </td>
+                    <td className="number-cell">{stock.quote?.currentPrice != null ? `₹${stock.quote.currentPrice.toFixed(2)}` : '—'}</td>
+                    <td className={`number-cell change-cell ${percentChange == null ? '' : percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>
+                      {percentChange != null ? `${priceChange >= 0 ? '+' : '-'}₹${Math.abs(priceChange || 0).toFixed(2)} (${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%)` : '—'}
+                    </td>
+                    <td className="number-cell">{formatVolume(stock.quote?.volume)}</td>
+                    {isEditMode && (
+                      <td className="edit-cell">
+                        <button type="button" className="remove-stock-button" onClick={(event) => { event.stopPropagation(); handleRemove(stock.symbol); }} disabled={removingSymbol === stock.symbol} aria-label={`Remove ${stock.symbol}`}>
+                          {removingSymbol === stock.symbol ? '...' : '×'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                  {isExpanded && (
+                    <tr className="watchlist-detail-row">
+                      <td colSpan={isEditMode ? 6 : 5}>{stock.meaningfulChange?.reason}</td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  const attentionStocks = filteredWatchlist.filter((stock) => stock.meaningfulChange?.isMeaningful);
+  const watchingStocks = filteredWatchlist.filter((stock) => !stock.meaningfulChange?.isMeaningful);
 
   return (
     <div className="dashboard-page dashboard-page--reveal">
@@ -228,6 +344,15 @@ function DashboardPage() {
         {error && <p className="dashboard-error" role="alert">{error}</p>}
 
         <section className="watchlist-section" aria-labelledby="watchlist-title">
+          <div className="watchlist-toolbar">
+            <label className="watchlist-filter-wrap">
+              <span className="sr-only">Filter current watchlist</span>
+              <input value={watchlistFilter} onChange={(event) => setWatchlistFilter(event.target.value)} placeholder="Filter your watchlist" />
+            </label>
+            <button type="button" className={`edit-toggle${isEditMode ? ' edit-toggle--active' : ''}`} onClick={() => setIsEditMode((active) => !active)}>
+              {isEditMode ? 'Done' : 'Edit'}
+            </button>
+          </div>
           <div className="watchlist-heading-row">
             <h2 id="watchlist-title">Market watch</h2>
             {!isLoading && <span>{watchlist.length} {watchlist.length === 1 ? 'stock' : 'stocks'}</span>}
@@ -237,52 +362,16 @@ function DashboardPage() {
             <div className="watchlist-list" aria-label="Loading watchlist">
               {[1, 2, 3].map((item) => <div className="watchlist-skeleton" key={item} />)}
             </div>
-          ) : sortedWatchlist.length === 0 ? (
+          ) : watchlist.length === 0 ? (
             <div className="watchlist-empty">
               <p>Your watchlist is empty.</p>
               <span>Add a symbol above to start tracking the market.</span>
             </div>
           ) : (
-            <div className="watchlist-list">
-              {sortedWatchlist.map((stock) => {
-                const isFlagged = stock.meaningfulChange?.isMeaningful;
-                const isExpanded = expandedSymbol === stock.symbol;
-                const percentChange = stock.quote?.percentChange;
-
-                return (
-                  <div className={`watchlist-item${isFlagged ? ' watchlist-item--flagged' : ''}`} key={stock._id || stock.symbol}>
-                    <button
-                      type="button"
-                      className="watchlist-row"
-                      onClick={() => isFlagged && setExpandedSymbol(isExpanded ? null : stock.symbol)}
-                      aria-expanded={isFlagged ? isExpanded : undefined}
-                    >
-                      <span className="watchlist-symbol">{stock.symbol}</span>
-                      <span className="watchlist-price">{stock.quote?.currentPrice != null ? `$${stock.quote.currentPrice.toFixed(2)}` : '—'}</span>
-                      <span className={`watchlist-change ${percentChange == null ? '' : percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>
-                        {percentChange != null ? `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%` : '—'}
-                      </span>
-                      {isFlagged ? <span className="watchlist-flag"><i />Unusual</span> : <span />}
-                    </button>
-                    {stock.quote?.stale && (
-                      <p className="watchlist-stale-note">Data may be delayed</p>
-                    )}
-                    <button
-                      type="button"
-                      className="watchlist-remove"
-                      onClick={() => handleRemove(stock.symbol)}
-                      disabled={removingSymbol === stock.symbol}
-                      aria-label={`Remove ${stock.symbol}`}
-                    >
-                      {removingSymbol === stock.symbol ? '...' : 'Remove'}
-                    </button>
-                    <div className={`watchlist-reason${isExpanded ? ' watchlist-reason--open' : ''}`}>
-                      <p>{stock.meaningfulChange?.reason}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              {attentionStocks.length > 0 && <section className="watchlist-group"><h3>Needs attention</h3>{renderStockTable(attentionStocks, 'No unusual moves')}</section>}
+              <section className="watchlist-group"><h3>Watching</h3>{renderStockTable(watchingStocks, attentionStocks.length ? 'No other stocks match your filter' : 'No stocks match your filter')}</section>
+            </>
           )}
         </section>
       </main>
