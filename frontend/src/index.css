@@ -178,6 +178,24 @@ body {
   white-space: nowrap;
 }
 
+.profile-watchlist-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--divider);
+  font-size: 0.75rem;
+}
+
+.profile-watchlist-count strong {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .profile-dropdown button {
   margin-top: 1rem;
   padding: 0.65rem 0;

@@ -7,6 +7,7 @@ function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [indices, setIndices] = useState([]);
+  const [watchlistCount, setWatchlistCount] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,26 @@ function AppShell() {
 
     loadIndices();
     const intervalId = window.setInterval(loadIndices, 45000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadWatchlistCount() {
+      try {
+        const response = await api.get('/api/watchlist');
+        if (active) setWatchlistCount(response.data.length);
+      } catch {
+        if (active) setWatchlistCount(null);
+      }
+    }
+
+    loadWatchlistCount();
+    const intervalId = window.setInterval(loadWatchlistCount, 45000);
     return () => {
       active = false;
       window.clearInterval(intervalId);
@@ -63,6 +84,10 @@ function AppShell() {
               <div className="profile-dropdown">
                 <strong>{user?.name || 'Account'}</strong>
                 <span>{user?.email || ''}</span>
+                <div className="profile-watchlist-count">
+                  <span>Watchlist</span>
+                  <strong>{watchlistCount == null ? '—' : `${watchlistCount} ${watchlistCount === 1 ? 'stock' : 'stocks'}`}</strong>
+                </div>
                 <button type="button" onClick={handleLogout}>Log out</button>
               </div>
             )}
