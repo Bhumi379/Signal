@@ -18,7 +18,7 @@ async function getDigest(req, res) {
     })
       .sort({ magnitude: -1, detectedAt: -1 })
       .limit(10)
-      .select('symbol magnitude reason detectedAt changeType')
+      .select('symbol magnitude reason detectedAt changeType headlines')
       .lean();
 
     res.json({ firstVisit: false, items });

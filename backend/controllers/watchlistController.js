@@ -107,7 +107,7 @@ async function getWatchlist(req, res) {
             detectedAt: { $gte: meaningfulSince },
           })
             .sort({ detectedAt: -1 })
-            .select('reason detectedAt')
+            .select('reason detectedAt headlines')
             .lean(),
           StockSnapshot.find({ symbol: item.symbol })
             .sort({ timestamp: -1 })
@@ -129,6 +129,7 @@ async function getWatchlist(req, res) {
           meaningfulChange: {
             isMeaningful: Boolean(event),
             reason: event?.reason || null,
+            headlines: event?.headlines || [],
           },
         };
       }),

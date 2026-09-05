@@ -16,6 +16,15 @@ const changeEventSchema = new mongoose.Schema({
   reason: {
     type: String,
   },
+  headlines: {
+    type: [{
+      headline: String,
+      url: String,
+      source: String,
+      datetime: Date,
+    }],
+    default: [],
+  },
   detectedAt: {
     type: Date,
     default: Date.now,

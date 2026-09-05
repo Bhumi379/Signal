@@ -3,6 +3,7 @@ const StockSnapshot = require('../models/StockSnapshot');
 
 const FINNHUB_URL = 'https://finnhub.io/api/v1/quote';
 const FINNHUB_SEARCH_URL = 'https://finnhub.io/api/v1/search';
+const FINNHUB_NEWS_URL = 'https://finnhub.io/api/v1/company-news';
 const REQUEST_TIMEOUT_MS = 8000;
 const MAX_RATE_LIMIT_RETRIES = 2;
 const RETRY_DELAY_MS = 300;
@@ -143,4 +144,34 @@ async function searchSymbol(query) {
   }
 }
 
-module.exports = { getQuote, searchSymbol };
+async function getCompanyNews(symbol, fromDate, toDate) {
+  const normalizedSymbol = typeof symbol === 'string' ? symbol.trim().toUpperCase() : '';
+  if (!normalizedSymbol || !process.env.FINNHUB_API_KEY) return [];
+
+  try {
+    const response = await axios.get(FINNHUB_NEWS_URL, {
+      params: {
+        symbol: normalizedSymbol,
+        from: fromDate,
+        to: toDate,
+        token: process.env.FINNHUB_API_KEY,
+      },
+      timeout: REQUEST_TIMEOUT_MS,
+    });
+
+    return (Array.isArray(response.data) ? response.data : [])
+      .filter((item) => item && item.headline && item.url)
+      .sort((first, second) => second.datetime - first.datetime)
+      .slice(0, 3)
+      .map((item) => ({
+        headline: item.headline,
+        url: item.url,
+        source: item.source || '',
+        datetime: new Date(item.datetime * 1000),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+module.exports = { getQuote, searchSymbol, getCompanyNews };

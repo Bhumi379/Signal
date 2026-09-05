@@ -1,6 +1,7 @@
 const ChangeEvent = require('../models/ChangeEvent');
 const StockSnapshot = require('../models/StockSnapshot');
 const { getYahooQuote } = require('./yahooFinanceService');
+const { getCompanyNews } = require('./finnhubService');
 
 const MINIMUM_SAMPLE_SIZE = 5;
 const SNAPSHOT_LIMIT = 30;
@@ -94,13 +95,31 @@ async function detectMeaningfulChange(symbol) {
   });
 
   if (!recentEvent) {
-    await ChangeEvent.create({
+    const event = await ChangeEvent.create({
       symbol: normalizedSymbol,
       changeType: 'price_spike',
       magnitude: zScore,
       reason,
       detectedAt: new Date(),
     });
+
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(today.getDate() - 2);
+    const formatDate = (date) => date.toISOString().slice(0, 10);
+
+    try {
+      const headlines = await getCompanyNews(
+        normalizedSymbol,
+        formatDate(from),
+        formatDate(today),
+      );
+      if (headlines.length) {
+        await ChangeEvent.findByIdAndUpdate(event._id, { headlines });
+      }
+    } catch {
+      // News is optional enrichment; the meaningful-change event remains valid.
+    }
   }
 
   return { isMeaningful: true, zScore, reason };
