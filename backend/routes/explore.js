@@ -1,5 +1,6 @@
 const express = require('express');
 const ChangeEvent = require('../models/ChangeEvent');
+const StockSnapshot = require('../models/StockSnapshot');
 const { getYahooQuote } = require('../services/yahooFinanceService');
 
 const router = express.Router();
@@ -53,15 +54,22 @@ const curatedStocks = [
 async function loadExploreData() {
   const results = await Promise.all(curatedStocks.map(async ({ symbol, companyName, sector, capTier }) => {
     try {
-      const quote = await getYahooQuote(symbol);
-      const event = await ChangeEvent.findOne({
-        symbol,
-        changeType: 'price_spike',
-        detectedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-      })
-        .sort({ detectedAt: -1 })
-        .select('reason detectedAt')
-        .lean();
+      const [quote, event, snapshots] = await Promise.all([
+        getYahooQuote(symbol),
+        ChangeEvent.findOne({
+          symbol,
+          changeType: 'price_spike',
+          detectedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        })
+          .sort({ detectedAt: -1 })
+          .select('reason detectedAt')
+          .lean(),
+        StockSnapshot.find({ symbol })
+          .sort({ timestamp: -1 })
+          .limit(20)
+          .select('price timestamp')
+          .lean(),
+      ]);
 
       return {
         symbol,
@@ -69,6 +77,10 @@ async function loadExploreData() {
         sector,
         capTier,
         quote,
+        trend: snapshots.reverse().map((snapshot) => ({
+          value: snapshot.price,
+          timestamp: snapshot.timestamp,
+        })),
         meaningfulChange: {
           isMeaningful: Boolean(event),
           reason: event?.reason || null,
@@ -81,6 +93,7 @@ async function loadExploreData() {
         sector,
         capTier,
         quote: null,
+        trend: [],
         meaningfulChange: { isMeaningful: false, reason: null },
         error: 'Quote unavailable',
       };
@@ -93,9 +106,11 @@ async function loadExploreData() {
 router.get('/', async (req, res) => {
   try {
     if (cachedResponse && Date.now() - cachedAt < CACHE_TTL_MS) {
+      console.info('[explore-cache] hit');
       return res.json(cachedResponse);
     }
 
+    console.info('[explore-cache] miss');
     cachedResponse = await loadExploreData();
     cachedAt = Date.now();
     return res.json(cachedResponse);

@@ -1,6 +1,5 @@
 const ChangeEvent = require('../models/ChangeEvent');
 const StockSnapshot = require('../models/StockSnapshot');
-const { getYahooQuote } = require('./yahooFinanceService');
 const { getCompanyNews } = require('./finnhubService');
 
 const MINIMUM_SAMPLE_SIZE = 5;
@@ -27,7 +26,9 @@ async function calculateStats(symbol) {
   const historicalSnapshots = chronologicalSnapshots.slice(0, -1);
   const changes = [];
 
-  for (let index = 1; index < chronologicalSnapshots.length; index += 1) {
+  // Keep the newest move out of the baseline so it is the observation
+  // being tested, rather than diluting its own z-score.
+  for (let index = 1; index < historicalSnapshots.length; index += 1) {
     const previousPrice = chronologicalSnapshots[index - 1].price;
     const currentPrice = chronologicalSnapshots[index].price;
 
@@ -55,6 +56,14 @@ async function calculateStats(symbol) {
   };
 }
 
+function latestSnapshotChange(snapshots) {
+  if (!Array.isArray(snapshots) || snapshots.length < 2) return null;
+  const previousPrice = snapshots[snapshots.length - 2]?.price;
+  const currentPrice = snapshots[snapshots.length - 1]?.price;
+  if (typeof previousPrice !== 'number' || typeof currentPrice !== 'number' || previousPrice === 0) return null;
+  return ((currentPrice - previousPrice) / previousPrice) * 100;
+}
+
 async function detectMeaningfulChange(symbol) {
   const normalizedSymbol = normalizeSymbol(symbol);
   if (!normalizedSymbol) {
@@ -62,7 +71,12 @@ async function detectMeaningfulChange(symbol) {
   }
 
   const stats = await calculateStats(normalizedSymbol);
-  const latestChange = stats === null ? null : (await getYahooQuote(normalizedSymbol)).percentChange;
+  const latestSnapshots = stats === null ? [] : await StockSnapshot.find({ symbol: normalizedSymbol })
+    .sort({ timestamp: -1 })
+    .limit(2)
+    .select('price timestamp')
+    .lean();
+  const latestChange = latestSnapshotChange(latestSnapshots.reverse());
   const zScore = stats && typeof latestChange === 'number' && stats.stdDev >= 0.01
     ? (latestChange - stats.avgChange) / stats.stdDev
     : null;

@@ -4,6 +4,7 @@ const {
   addToWatchlist,
   removeFromWatchlist,
   getWatchlist,
+  getWatchlistCount,
 } = require('../controllers/watchlistController');
 
 const router = express.Router();
@@ -11,6 +12,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.post('/', addToWatchlist);
+router.get('/count', getWatchlistCount);
 router.get('/', getWatchlist);
 router.delete('/:symbol', removeFromWatchlist);
 

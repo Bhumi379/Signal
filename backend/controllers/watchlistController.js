@@ -141,4 +141,13 @@ async function getWatchlist(req, res) {
   }
 }
 
-module.exports = { addToWatchlist, removeFromWatchlist, getWatchlist };
+async function getWatchlistCount(req, res) {
+  try {
+    const count = await WatchlistItem.countDocuments({ userId: req.userId });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error fetching watchlist count' });
+  }
+}
+
+module.exports = { addToWatchlist, removeFromWatchlist, getWatchlist, getWatchlistCount };
