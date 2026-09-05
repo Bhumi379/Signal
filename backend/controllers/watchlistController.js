@@ -1,7 +1,7 @@
 const WatchlistItem = require('../models/WatchlistItem');
 const ChangeEvent = require('../models/ChangeEvent');
 const StockSnapshot = require('../models/StockSnapshot');
-const { getQuote } = require('../services/finnhubService');
+const { getYahooQuote } = require('../services/yahooFinanceService');
 
 const companyNames = {
   'RELIANCE.NS': 'Reliance Industries',
@@ -98,7 +98,7 @@ async function getWatchlist(req, res) {
         const meaningfulSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
         const [quoteResult, event, snapshots] = await Promise.all([
-          getQuote(item.symbol)
+          getYahooQuote(item.symbol)
             .then((quote) => ({ quote }))
             .catch(() => ({ quote: null })),
           ChangeEvent.findOne({

@@ -69,7 +69,6 @@ function AppShell() {
           <NavLink to="/dashboard" className={({ isActive }) => `app-nav-link${isActive ? ' app-nav-link--active' : ''}`}>Watchlist</NavLink>
         </nav>
         <div className="app-nav-actions">
-          <input className="app-nav-search" placeholder="Search" aria-label="Search" readOnly />
           <div className="profile-menu">
             <button
               type="button"

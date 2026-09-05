@@ -1,6 +1,6 @@
 const StockSnapshot = require('../models/StockSnapshot');
 const WatchlistItem = require('../models/WatchlistItem');
-const { getQuote } = require('./finnhubService');
+const { getYahooQuote } = require('./yahooFinanceService');
 const { detectMeaningfulChange } = require('./changeDetectionService');
 
 async function takeSnapshot(symbol) {
@@ -10,7 +10,7 @@ async function takeSnapshot(symbol) {
     throw new Error('A stock symbol is required to take a snapshot');
   }
 
-  const quote = await getQuote(normalizedSymbol);
+  const quote = await getYahooQuote(normalizedSymbol);
   const snapshot = {
     symbol: normalizedSymbol,
     price: quote.currentPrice,

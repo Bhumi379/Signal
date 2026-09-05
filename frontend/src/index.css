@@ -113,21 +113,6 @@ body {
   margin-left: auto;
 }
 
-.app-nav-search {
-  width: 12rem;
-  padding: 0.55rem 0.75rem;
-  color: var(--text-muted);
-  background: rgba(237, 237, 237, 0.04);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  outline: none;
-  font-size: 0.8125rem;
-}
-
-.app-nav-search::placeholder {
-  color: var(--text-muted);
-}
-
 .profile-menu {
   position: relative;
 }
@@ -311,6 +296,217 @@ body {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.875rem;
+}
+
+.explore-table-section {
+  margin-top: 3.5rem;
+}
+
+.explore-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.explore-filter {
+  flex: 1;
+}
+
+.explore-filter input {
+  width: min(100%, 24rem);
+  padding: 0.7rem 0;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  font-size: 0.875rem;
+}
+
+.explore-filter input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.explore-filter input::placeholder,
+.explore-count {
+  color: var(--text-muted);
+}
+
+.explore-count {
+  font-size: 0.75rem;
+}
+
+.explore-table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
+}
+
+.explore-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.explore-table th {
+  padding: 0.75rem 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.explore-table th:first-child {
+  width: 40%;
+  padding-left: 0;
+  text-align: left;
+}
+
+.explore-table th button {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: none;
+  font: inherit;
+}
+
+.explore-table th button:hover,
+.explore-table th button:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.explore-table th:last-child {
+  width: 4.5rem;
+  padding-right: 0;
+}
+
+.explore-table td {
+  padding: 0.85rem 0.75rem;
+  border-top: 1px solid var(--divider);
+  vertical-align: middle;
+}
+
+.explore-table td:first-child {
+  padding-left: 0;
+}
+
+.explore-table td:last-child {
+  padding-right: 0;
+}
+
+.explore-company {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.explore-company-mark {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--text);
+  background: var(--interactive-muted);
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+.explore-company > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.explore-company strong {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explore-company small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.explore-company em {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  color: #fbbf24;
+  font-style: normal;
+}
+
+.explore-company em i {
+  width: 0.35rem;
+  height: 0.35rem;
+  background: #fbbf24;
+  border-radius: 50%;
+}
+
+.explore-number {
+  text-align: right;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.explore-action-cell {
+  text-align: right;
+}
+
+.explore-add-button {
+  display: inline-grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.explore-add-button:hover:not(:disabled) {
+  color: var(--bg);
+  background: var(--accent);
+}
+
+.explore-added {
+  color: var(--up);
+  font-size: 0.75rem;
+}
+
+.explore-empty,
+.explore-table-skeleton {
+  border-top: 1px solid var(--divider);
+}
+
+.explore-empty {
+  padding: 1.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.explore-table-skeleton {
+  display: grid;
+  gap: 1px;
+  background: var(--divider);
+}
+
+.explore-table-skeleton div {
+  height: 4.25rem;
+  background: linear-gradient(90deg, var(--bg), rgba(237, 237, 237, 0.05), var(--bg));
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 a {
@@ -1291,10 +1487,6 @@ input {
     gap: 1rem;
   }
 
-  .app-nav-search {
-    display: none;
-  }
-
   .index-ticker-inner {
     display: flex;
     width: max-content;
@@ -1322,6 +1514,14 @@ input {
   .explore-page {
     width: 100%;
     padding: 3.5rem 1.5rem 5rem;
+  }
+
+  .explore-table-section {
+    margin-top: 2.5rem;
+  }
+
+  .explore-table-toolbar {
+    align-items: flex-end;
   }
 
   .auth-main {

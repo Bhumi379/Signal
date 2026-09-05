@@ -1,6 +1,6 @@
 const ChangeEvent = require('../models/ChangeEvent');
 const StockSnapshot = require('../models/StockSnapshot');
-const { getQuote } = require('./finnhubService');
+const { getYahooQuote } = require('./yahooFinanceService');
 
 const MINIMUM_SAMPLE_SIZE = 5;
 const SNAPSHOT_LIMIT = 30;
@@ -59,7 +59,7 @@ async function detectMeaningfulChange(symbol) {
     throw new Error('A stock symbol is required');
   }
 
-  const latestQuote = await getQuote(normalizedSymbol);
+  const latestQuote = await getYahooQuote(normalizedSymbol);
   const stats = await calculateStats(normalizedSymbol);
 
   if (stats === null) {
