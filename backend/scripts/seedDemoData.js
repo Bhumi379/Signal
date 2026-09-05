@@ -6,23 +6,38 @@
  * This inserts data; it deliberately does not remove existing snapshots.
  */
 require('dotenv').config();
+const dns = require('dns');
 const mongoose = require('mongoose');
 const StockSnapshot = require('../models/StockSnapshot');
 const { detectMeaningfulChange } = require('../services/changeDetectionService');
 
 // EDIT: the symbols currently in the watchlist you want to demonstrate.
 const watchlistSymbols = [
-  'RELIANCE.NS',
-  'TCS.NS',
   'HDFCBANK.NS',
-  'INFY.NS',
+  'ICICIBANK.NS',
+  'HINDUNILVR.NS',
+  'AMZN',
+  'RELIANCE.NS',
 ];
 
 // EDIT: exactly two symbols from watchlistSymbols that should look unusual.
-const flaggedSymbols = ['RELIANCE.NS', 'TCS.NS'];
+const flaggedSymbols = ['ICICIBANK.NS', 'HDFCBANK.NS'];
 
 const SNAPSHOT_COUNT = 18;
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
+// Keep demo runs deterministic. Set false only when you intentionally want
+// to append this generated history to snapshots already stored for a symbol.
+const RESET_EXISTING_HISTORY = true;
+
+const mongoDnsServers = (process.env.MONGO_DNS_SERVERS || '')
+  .split(',')
+  .map((server) => server.trim())
+  .filter(Boolean);
+
+if (mongoDnsServers.length > 0) {
+  dns.setServers(mongoDnsServers);
+}
 
 function normalizeSymbol(symbol) {
   return typeof symbol === 'string' ? symbol.trim().toUpperCase() : '';
@@ -81,6 +96,11 @@ async function seedDemoData() {
 
   await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000, family: 4 });
   try {
+    if (RESET_EXISTING_HISTORY) {
+      const { deletedCount } = await StockSnapshot.deleteMany({ symbol: { $in: symbols } });
+      console.log(`Cleared ${deletedCount} existing snapshots for the demo symbols.`);
+    }
+
     for (const symbol of symbols) {
       const snapshots = buildSnapshots(symbol);
       await StockSnapshot.insertMany(snapshots);

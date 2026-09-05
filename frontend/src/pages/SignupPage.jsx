@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Background3D from '../components/Background3D';
 import { hasSeenIntro } from '../components/LandingAnimation';
 import SignalMark from '../components/SignalMark';
+import MarketHero from '../components/MarketHero';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ function SignupPage() {
   return (
     <div className="auth-page">
       <Background3D />
+      <MarketHero />
       <div className={`auth-logo ${introSeen ? 'auth-logo--settled' : ''}`}><SignalMark /><span>Signal</span></div>
 
       <main className="auth-main">

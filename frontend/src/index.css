@@ -4,16 +4,16 @@
   --bg: #051f20;
   --bg-raised: #0b2b26;
   --bg-raised-2: #163832;
-  --border: #235347;
+  --border: #2a3b38;
   --text: #daf1de;
-  --text-dim: #8eb69b;
+  --text-dim: #8fa39a;
   --accent: #d9a857;
   --accent-dim: rgba(217, 168, 87, 0.15);
 
-  --up: #34d399;
+  --up: #3ddc97;
   --down: #f87171;
   --error: #f87171;
-  --divider: rgba(35, 83, 71, 0.62);
+  --divider: rgba(42, 59, 56, 0.62);
   --input-bg: rgba(11, 43, 38, 0.8);
 
   /* Compatibility aliases for existing component rules. */
@@ -52,6 +52,8 @@ body {
 
 .app-shell {
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   min-height: 100svh;
   color: var(--text);
@@ -192,8 +194,8 @@ body {
   position: absolute;
   z-index: 20;
   top: calc(100% + 0.75rem);
-  right: -4rem;
-  width: min(390px, calc(100vw - 2rem));
+  right: 0;
+  width: min(400px, calc(100vw - 3rem));
   background: var(--bg-raised);
   border: 1px solid var(--border);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
@@ -487,7 +489,37 @@ body {
 .app-shell-content {
   position: relative;
   z-index: 1;
-  min-height: calc(100svh - 7.5rem);
+  flex: 1 0 auto;
+}
+
+.app-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem max(var(--content-gutter), calc((100vw - var(--content-max)) / 2));
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.app-footer p {
+  margin: 0;
+}
+
+.app-footer-github {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--text-dim);
+}
+
+.app-footer-github:hover,
+.app-footer-github:focus-visible {
+  color: var(--text);
 }
 
 .explore-page {
@@ -651,8 +683,13 @@ body {
 }
 
 .explore-table th:first-child {
-  width: 40%;
+  width: 34%;
   padding-left: 0;
+  text-align: left;
+}
+
+.explore-table th:nth-child(2),
+.explore-table td.trend-cell {
   text-align: left;
 }
 
@@ -842,7 +879,7 @@ input {
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--accent) 3%, transparent) 0%,
-    color-mix(in srgb, var(--up) 2%, transparent) 100%
+    color-mix(in srgb, var(--accent) 2%, transparent) 100%
   );
   transform-style: preserve-3d;
 }
@@ -864,7 +901,7 @@ input {
   max-height: 380px;
   bottom: 5%;
   left: -5%;
-  border-color: color-mix(in srgb, var(--up) 7%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 7%, transparent);
   transform: rotateX(40deg) rotateY(18deg) rotateZ(-4deg);
 }
 
@@ -964,12 +1001,145 @@ input {
   flex: 1;
   display: flex;
   align-items: center;
-  padding: 6rem 2.5rem 3rem;
+  padding: 6rem 2.5rem 3rem clamp(3.75rem, 5vw, 5rem);
+}
+
+.market-hero {
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  right: 5%;
+  width: min(48vw, 650px);
+  height: 72%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.market-hero-number {
+  position: absolute;
+  color: var(--accent);
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  opacity: 0.07;
+  animation: market-number-breathe 9s ease-in-out infinite;
+}
+
+.market-hero-number--one {
+  top: 4%;
+  right: 2%;
+}
+
+.market-hero-number--two {
+  bottom: 2%;
+  left: 2%;
+  color: var(--accent);
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  animation-delay: -4s;
+}
+
+.market-card {
+  position: absolute;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1rem;
+  width: 12.5rem;
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  background: linear-gradient(rgba(223, 241, 222, 0.06), rgba(223, 241, 222, 0.06)), var(--bg-raised-2);
+  border: 1px solid color-mix(in srgb, var(--border) 92%, var(--text-dim));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+  opacity: 0.78;
+  animation: market-card-float 8s ease-in-out infinite;
+}
+
+.market-card--one {
+  top: 28%;
+  left: 13%;
+}
+
+.market-card--two {
+  top: 51%;
+  right: 8%;
+  animation-delay: -2.5s;
+}
+
+.market-card--three {
+  right: 30%;
+  bottom: 6%;
+  animation-delay: -5s;
+}
+
+.market-card div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.market-card strong {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.market-card span {
+  color: var(--text-dim);
+  font-size: 0.625rem;
+}
+
+.market-card b {
+  align-self: center;
+  color: var(--up);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.market-card-down {
+  color: var(--down) !important;
+}
+
+.market-card svg {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 1.75rem;
+}
+
+.market-card svg path {
+  fill: none;
+  stroke: var(--up);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.market-card--three svg path {
+  stroke: var(--down);
+}
+
+@keyframes market-card-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+
+@keyframes market-number-breathe {
+  0%, 100% { opacity: 0.045; }
+  50% { opacity: 0.1; }
 }
 
 .auth-form-wrap {
   width: 100%;
   max-width: 380px;
+  padding: 1.5rem;
+  background:
+    linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 55%, var(--border)), var(--border)) border-box;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 8%, transparent);
+  transition: box-shadow 200ms ease;
+}
+
+.auth-form-wrap:focus-within {
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .auth-heading {
@@ -1005,18 +1175,19 @@ input {
 }
 
 .form-field input {
-  padding: 0.625rem 0;
+  padding: 0.625rem 0.7rem;
   font-size: 1rem;
   color: var(--text);
   background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .form-field input:focus {
-  border-bottom-color: var(--interactive);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
 }
 
 .form-field input::placeholder {
@@ -1040,11 +1211,13 @@ input {
   background: var(--interactive);
   border: none;
   border-radius: 4px;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: background 200ms ease, box-shadow 200ms ease, transform 200ms ease, opacity 200ms ease;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--interactive-hover);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--accent) 24%, transparent);
+  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
@@ -1066,7 +1239,6 @@ input {
 /* ── Dashboard ── */
 
 .dashboard-page {
-  min-height: 100svh;
   display: flex;
   flex-direction: column;
 }
@@ -1217,8 +1389,8 @@ input {
   width: 0.95rem;
   height: 0.95rem;
   place-items: center;
-  color: var(--text-dim);
-  border: 1px solid var(--text-dim);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 75%, var(--border));
   border-radius: 50%;
   font-size: 0.625rem;
   font-weight: 600;
@@ -1430,7 +1602,19 @@ input {
 .watchlist-add {
   display: block;
   position: relative;
-  margin-bottom: 3.5rem;
+  margin-bottom: 4.5rem;
+  padding-bottom: 2.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-control-label {
+  display: block;
+  margin: 0 0 0.65rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .stock-search-wrap {
@@ -1550,6 +1734,31 @@ input {
   margin-bottom: 1.75rem;
 }
 
+.watchlist-filter-controls {
+  flex: 1;
+  min-width: 0;
+}
+
+.watchlist-filter-label {
+  display: block;
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.watchlist-filter-bar {
+  margin: 0.65rem 0 0;
+}
+
+.trend-sparkline--loading {
+  display: inline-block;
+  width: 92px;
+  height: 32px;
+}
+
 .watchlist-filter-wrap {
   flex: 1;
 }
@@ -1570,7 +1779,7 @@ input {
 }
 
 .watchlist-filter-wrap input::placeholder {
-  color: var(--text-muted);
+  color: var(--accent);
 }
 
 .edit-toggle {
@@ -1592,7 +1801,7 @@ input {
 
 .watchlist-group h3 {
   margin: 0 0 0.75rem;
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1763,6 +1972,12 @@ input {
 
 .trend-cell {
   padding-left: 0.75rem;
+  width: 7.25rem;
+  vertical-align: middle;
+}
+
+.trend-sparkline {
+  display: block;
 }
 
 .number-cell {
@@ -2029,10 +2244,6 @@ input {
     padding: 0.75rem 1rem;
   }
 
-  .app-shell-content {
-    min-height: calc(100svh - 6.75rem);
-  }
-
   .explore-page {
     width: 100%;
     padding: 3.5rem 1.5rem 5rem;
@@ -2060,6 +2271,10 @@ input {
 
   .auth-main {
     padding: 5.5rem 1.5rem 2rem;
+  }
+
+  .market-hero {
+    display: none;
   }
 
   .landing-logo,
@@ -2146,4 +2361,10 @@ input {
   .watchlist-reason {
     transition: none;
   }
+
+  .market-card,
+  .market-hero-number {
+    animation: none;
+  }
+
 }

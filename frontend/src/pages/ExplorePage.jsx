@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import InfoTip from '../components/InfoTip';
+import TrendSparkline from '../components/TrendSparkline';
 import api from '../services/api';
 
 function ExplorePage() {
@@ -169,6 +170,7 @@ function ExplorePage() {
               <thead>
                 <tr>
                   <th>Company</th>
+                  <th>Trend <InfoTip label="About trend">A quick snapshot of how the price has moved recently.</InfoTip></th>
                   <th><button type="button" onClick={() => handleSort('price')}>Price</button></th>
                   <th><button type="button" onClick={() => handleSort('change')}>1D Change</button> <InfoTip label="About one day change">How much the price has moved since yesterday's market close.</InfoTip></th>
                   <th><button type="button" onClick={() => handleSort('volume')}>Volume</button> <InfoTip label="About volume">How many shares of this stock have been traded today. Higher volume usually means more people are paying attention to it right now.</InfoTip></th>
@@ -189,6 +191,9 @@ function ExplorePage() {
                             <small>{stock.symbol}{stock.meaningfulChange?.isMeaningful && <em><i />Unusual <InfoTip label="About unusual move">This stock moved a lot more than it normally does, based on its own recent history — not just a big number, but unusual for this stock specifically.</InfoTip></em>}</small>
                           </span>
                         </div>
+                      </td>
+                      <td className="trend-cell">
+                        <TrendSparkline points={stock.trend} percentChange={percentChange} />
                       </td>
                       <td className="explore-number">{stock.quote?.currentPrice != null ? `₹${stock.quote.currentPrice.toFixed(2)}` : '—'}</td>
                       <td className={`explore-number ${percentChange == null ? '' : percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>

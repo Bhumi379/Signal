@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
-import { Line, LineChart } from 'recharts';
 import InfoTip from '../components/InfoTip';
 import StatTile from '../components/StatTile';
+import TrendSparkline from '../components/TrendSparkline';
 import api from '../services/api';
 
 function DashboardPage() {
@@ -19,6 +19,7 @@ function DashboardPage() {
   const [showDigest, setShowDigest] = useState(false);
   const [isDigestExpanded, setIsDigestExpanded] = useState(false);
   const [watchlistFilter, setWatchlistFilter] = useState('');
+  const [quickFilters, setQuickFilters] = useState({ gainers: false, losers: false, unusual: false });
   const [isEditMode, setIsEditMode] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'desc' });
   const [error, setError] = useState('');
@@ -150,10 +151,26 @@ function DashboardPage() {
 
   const filteredWatchlist = watchlist.filter((stock) => {
     const query = watchlistFilter.trim().toLowerCase();
-    if (!query) return true;
-    return stock.symbol.toLowerCase().includes(query)
-      || stock.companyName?.toLowerCase().includes(query);
+    const percentChange = stock.quote?.percentChange;
+    if (query && !stock.symbol.toLowerCase().includes(query)
+      && !stock.companyName?.toLowerCase().includes(query)) return false;
+    if (quickFilters.gainers && !(percentChange > 0)) return false;
+    if (quickFilters.losers && !(percentChange < 0)) return false;
+    if (quickFilters.unusual && !stock.meaningfulChange?.isMeaningful) return false;
+    return true;
   });
+
+  const hasActiveWatchlistFilters = Boolean(watchlistFilter.trim()
+    || Object.values(quickFilters).some(Boolean));
+
+  function toggleQuickFilter(key) {
+    setQuickFilters((current) => ({ ...current, [key]: !current[key] }));
+  }
+
+  function clearWatchlistFilters() {
+    setWatchlistFilter('');
+    setQuickFilters({ gainers: false, losers: false, unusual: false });
+  }
 
   function getSortValue(stock, key) {
     if (key === 'price') return stock.quote?.currentPrice ?? -Infinity;
@@ -209,10 +226,6 @@ function DashboardPage() {
               const isExpanded = expandedSymbol === stock.symbol;
               const percentChange = stock.quote?.percentChange;
               const priceChange = stock.quote?.change;
-              const trend = stock.trend?.length >= 2
-                ? stock.trend
-                : [{ value: stock.quote?.currentPrice || 0 }, { value: stock.quote?.currentPrice || 0 }];
-              const trendUp = trend[trend.length - 1].value >= trend[0].value;
               const logoTone = stock.symbol.charCodeAt(0) % 4;
 
                 return (
@@ -231,9 +244,7 @@ function DashboardPage() {
                       </span>
                     </td>
                     <td className="trend-cell">
-                      <LineChart width={92} height={32} data={trend}>
-                        <Line type="monotone" dataKey="value" stroke={stock.trend?.length >= 2 ? (trendUp ? 'var(--up)' : 'var(--down)') : 'var(--text-muted)'} strokeWidth={2} dot={false} isAnimationActive={false} />
-                      </LineChart>
+                      <TrendSparkline points={stock.trend} percentChange={percentChange} />
                     </td>
                     <td className="number-cell">{stock.quote?.currentPrice != null ? `₹${stock.quote.currentPrice.toFixed(2)}` : '—'}</td>
                     <td className={`number-cell change-cell ${percentChange == null ? '' : percentChange >= 0 ? 'watchlist-change--up' : 'watchlist-change--down'}`}>
@@ -339,7 +350,7 @@ function DashboardPage() {
         </section>
 
         <form className="watchlist-add" onSubmit={(event) => event.preventDefault()}>
-          <label className="sr-only" htmlFor="stock-symbol">Add a stock symbol</label>
+          <label className="watchlist-control-label" htmlFor="stock-symbol">Add to your watchlist</label>
           <div className="stock-search-wrap">
             <input
               id="stock-symbol"
@@ -383,10 +394,19 @@ function DashboardPage() {
 
         <section className="watchlist-section" aria-labelledby="watchlist-title">
           <div className="watchlist-toolbar">
-            <label className="watchlist-filter-wrap">
-              <span className="sr-only">Filter current watchlist</span>
-              <input value={watchlistFilter} onChange={(event) => setWatchlistFilter(event.target.value)} placeholder="Filter your watchlist" />
-            </label>
+            <div className="watchlist-filter-controls">
+              <span className="watchlist-filter-label">Your stocks</span>
+              <label className="watchlist-filter-wrap">
+                <span className="sr-only">Filter current watchlist</span>
+                <input value={watchlistFilter} onChange={(event) => setWatchlistFilter(event.target.value)} placeholder="Filter by company name or symbol" />
+              </label>
+              <div className="explore-filter-bar watchlist-filter-bar" aria-label="Watchlist filters">
+                <button type="button" className={`explore-filter-chip${quickFilters.gainers ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('gainers')}>Gainers</button>
+                <button type="button" className={`explore-filter-chip${quickFilters.losers ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('losers')}>Losers</button>
+                <button type="button" className={`explore-filter-chip${quickFilters.unusual ? ' explore-filter-chip--active' : ''}`} onClick={() => toggleQuickFilter('unusual')}>Unusual only</button>
+                {hasActiveWatchlistFilters && <button type="button" className="explore-clear-filters" onClick={clearWatchlistFilters}>Clear filters</button>}
+              </div>
+            </div>
             <button type="button" className={`edit-toggle${isEditMode ? ' edit-toggle--active' : ''}`} onClick={() => setIsEditMode((active) => !active)}>
               {isEditMode ? 'Done' : 'Edit'}
             </button>
