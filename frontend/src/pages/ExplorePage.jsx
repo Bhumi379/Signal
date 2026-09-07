@@ -25,9 +25,21 @@ function ExplorePage() {
           api.get('/api/explore'),
           api.get('/api/watchlist'),
         ]);
+        
         if (active) {
-          setStocks(exploreResponse.data);
-          setWatchlistSymbols(new Set(watchlistResponse.data.map((item) => item.symbol)));
+          // SAFEGUARD: Ensure payload is always an array
+          const rawData = exploreResponse.data;
+          const safeDataArray = Array.isArray(rawData) 
+            ? rawData 
+            : (Array.isArray(rawData?.data) ? rawData.data : []);
+
+          setStocks(safeDataArray);
+
+          const safeWatchlist = Array.isArray(watchlistResponse.data) 
+            ? watchlistResponse.data 
+            : (Array.isArray(watchlistResponse.data?.data) ? watchlistResponse.data.data : []);
+
+          setWatchlistSymbols(new Set(safeWatchlist.map((item) => item?.symbol).filter(Boolean)));
           setError('');
         }
       } catch (loadError) {
@@ -44,16 +56,25 @@ function ExplorePage() {
   }, []);
 
   const filteredStocks = useMemo(() => {
+    if (!Array.isArray(stocks)) return [];
+
     const query = filter.trim().toLowerCase();
-    const matches = stocks.filter((stock) => !query
-      || stock.symbol.toLowerCase().includes(query)
-      || stock.companyName.toLowerCase().includes(query)).filter((stock) => {
+    const matches = stocks.filter((stock) => {
+      if (!stock) return false;
+
+      const symbolMatch = stock.symbol?.toLowerCase().includes(query);
+      const companyMatch = stock.companyName?.toLowerCase().includes(query);
+      const matchesSearch = !query || symbolMatch || companyMatch;
+
+      if (!matchesSearch) return false;
+
       const percentChange = stock.quote?.percentChange;
       if (sectorFilter && stock.sector !== sectorFilter) return false;
       if (capFilter && stock.capTier !== capFilter) return false;
       if (quickFilters.gainers && !(percentChange > 0)) return false;
       if (quickFilters.losers && !(percentChange < 0)) return false;
       if (quickFilters.unusual && !stock.meaningfulChange?.isMeaningful) return false;
+      
       return true;
     });
 
@@ -112,6 +133,8 @@ function ExplorePage() {
     return typeof volume === 'number' ? volume.toLocaleString('en-IN') : '—';
   }
 
+  const safeStocksList = Array.isArray(stocks) ? stocks : [];
+
   return (
     <div className="explore-page dashboard-page--reveal">
       <section className="explore-intro">
@@ -121,8 +144,8 @@ function ExplorePage() {
       </section>
 
       <div className="explore-summary-tile">
-        <span>{stocks.filter((stock) => stock.quote?.percentChange > 0).length} stocks trending up today</span>
-        <strong>{stocks.filter((stock) => stock.meaningfulChange?.isMeaningful).length} flagged as unusual</strong>
+        <span>{safeStocksList.filter((stock) => stock?.quote?.percentChange > 0).length} stocks trending up today</span>
+        <strong>{safeStocksList.filter((stock) => stock?.meaningfulChange?.isMeaningful).length} flagged as unusual</strong>
       </div>
 
       <section className="explore-table-section" aria-labelledby="explore-table-title">
@@ -131,7 +154,7 @@ function ExplorePage() {
             <span className="sr-only">Filter explore stocks</span>
             <input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Filter by company or symbol" />
           </label>
-          {!isLoading && <span className="explore-count">{filteredStocks.length} of {stocks.length} stocks</span>}
+          {!isLoading && <span className="explore-count">{filteredStocks.length} of {safeStocksList.length} stocks</span>}
         </div>
 
         <div className="explore-filter-bar" aria-label="Explore filters">
@@ -162,7 +185,7 @@ function ExplorePage() {
           </div>
         ) : filteredStocks.length === 0 ? (
           <div className="explore-empty">
-            {filter.trim() ? 'No stocks match your search' : hasActiveFilters ? 'No stocks match your filters' : 'Explore data is unavailable right now'}
+            {filter.trim() ? 'No stocks match your search' : hasActiveFilters ? 'No stocks match your filters' : 'Explore data is warming up. Please refresh in a moment.'}
           </div>
         ) : (
           <div className="explore-table-wrap">
@@ -181,13 +204,15 @@ function ExplorePage() {
                 {filteredStocks.map((stock) => {
                   const percentChange = stock.quote?.percentChange;
                   const isAdded = watchlistSymbols.has(stock.symbol);
+                  const companyInitial = stock.companyName ? stock.companyName.charAt(0) : (stock.symbol ? stock.symbol.charAt(0) : '?');
+
                   return (
-                    <tr className={stock.meaningfulChange?.isMeaningful ? 'explore-table-row explore-table-row--flagged' : 'explore-table-row'} key={stock.symbol}>
+                    <tr className={stock.meaningfulChange?.isMeaningful ? 'explore-table-row explore-table-row--flagged' : 'explore-table-row'} key={stock.symbol || Math.random()}>
                       <td>
                         <div className="explore-company">
-                          <span className="explore-company-mark">{stock.companyName.charAt(0)}</span>
+                          <span className="explore-company-mark">{companyInitial}</span>
                           <span>
-                            <strong>{stock.companyName}</strong>
+                            <strong>{stock.companyName || stock.symbol}</strong>
                             <small>{stock.symbol}{stock.meaningfulChange?.isMeaningful && <em><i />Unusual <InfoTip label="About unusual move">This stock moved a lot more than it normally does, based on its own recent history — not just a big number, but unusual for this stock specifically.</InfoTip></em>}</small>
                           </span>
                         </div>
