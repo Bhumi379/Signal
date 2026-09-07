@@ -77,7 +77,7 @@ async function detectMeaningfulChange(symbol) {
     .select('price timestamp')
     .lean();
   const latestChange = latestSnapshotChange(latestSnapshots.reverse());
-  const zScore = stats && typeof latestChange === 'number' && stats.stdDev >= 0.01
+  const zScore = stats && typeof latestChange === 'number' && stats.stdDev >= 0.15
     ? (latestChange - stats.avgChange) / stats.stdDev
     : null;
 
@@ -92,7 +92,7 @@ async function detectMeaningfulChange(symbol) {
     return { isMeaningful: false, reason: 'quote change unavailable' };
   }
 
-  if (stats.stdDev < 0.01) {
+  if (stats.stdDev < 0.15) {
     return { isMeaningful: false, zScore: null, reason: 'not enough variation yet' };
   }
 
