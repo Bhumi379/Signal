@@ -16,11 +16,11 @@ function LandingPage() {
   }, [playIntro]);
 
   useEffect(() => {
-  if (playIntro) {
-    const timer = setTimeout(() => setPlayIntro(false), 1500);
-    return () => clearTimeout(timer);
-  }
-}, [playIntro]);
+    if (playIntro) {
+      const timer = setTimeout(() => setPlayIntro(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [playIntro]);
 
   function handleIntroComplete() {
     setPlayIntro(false);
@@ -30,7 +30,7 @@ function LandingPage() {
   return (
     <div className="auth-page">
       <Background3D />
-      <MarketHero />
+      {!playIntro && <MarketHero />}
       <LandingAnimation play={playIntro} onComplete={handleIntroComplete} />
 
       <motion.main
