@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import MarketHero from '../components/MarketHero';
 import Background3D from '../components/Background3D';
 import LandingAnimation, { hasSeenIntro } from '../components/LandingAnimation';
 import LoginForm from '../components/LoginForm';
@@ -29,6 +30,7 @@ function LandingPage() {
   return (
     <div className="auth-page">
       <Background3D />
+      <MarketHero />
       <LandingAnimation play={playIntro} onComplete={handleIntroComplete} />
 
       <motion.main
